@@ -80,7 +80,7 @@ function renderSpecs(data) {
         <div class="info-section">
             <h3>Module Information</h3>
             <table class="info-table">
-                ${Object.entries(data.info).slice(1).map(([k, v]) => `
+                ${Object.entries(data.info).filter(([k]) => k !== "type").map(([k, v]) => `
                     <tr><td>${k}</td><td>${v}</td></tr>
                 `).join('')}
             </table>
@@ -271,5 +271,119 @@ async function saveModule() {
     } catch (err) {
         console.error("Error saving module:", err);
         showInfo("Error saving module.");
+    }
+}
+
+// --- Events ---
+const eventsUrl = '/api/events'; // endpoint do pobierania eventów
+const saveEventsUrl = '/api/save/events'; // endpoint do zapisu
+
+let eventsData = [];
+
+// --- inicjalizacja po załadowaniu DOM ---
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.includes('/events')) {
+        loadEvents();
+        document.getElementById('add-event-btn').onclick = addEventDialog;
+    }
+});
+
+// --- pobranie eventów z serwera ---
+async function loadEvents() {
+    try {
+        const res = await fetch(eventsUrl);
+        eventsData = await res.json();
+        renderCalendar();
+        renderEventList();
+    } catch (err) {
+        console.error('Error loading events:', err);
+    }
+}
+
+// --- render FullCalendar ---
+function renderCalendar() {
+    const calendarEl = document.getElementById('calendar');
+    calendarEl.innerHTML = '';
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: eventsData.map(e => ({
+            id: e.id,
+            title: e.name,
+            start: e.start,
+            end: e.end,
+            allDay: e.allDay
+        }))
+    });
+    calendar.render();
+}
+
+// --- render listy eventów ---
+function renderEventList() {
+    const tbody = document.querySelector('#events-table tbody');
+    tbody.innerHTML = '';
+    eventsData.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${e.name}</td>
+            <td>${e.location}</td>
+            <td>${new Date(e.start).toLocaleString()}</td>
+            <td>${new Date(e.end).toLocaleString()}</td>
+            <td>${e.allDay}</td>
+            <td>
+                <button onclick="editEvent('${e.id}')">Edit</button>
+                <button onclick="deleteEvent('${e.id}')">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// --- dodawanie nowego eventu ---
+function addEventDialog() {
+    const name = prompt("Event Name:");
+    if (!name) return;
+    const location = prompt("Location:");
+    const start = prompt("Start date/time (YYYY-MM-DD HH:MM):");
+    const end = prompt("End date/time (YYYY-MM-DD HH:MM):");
+    const allDay = confirm("All Day?");
+    const id = Date.now().toString(); // proste id
+
+    eventsData.push({ id, name, location, start, end, allDay });
+    saveEvents();
+}
+
+// --- edycja eventu ---
+function editEvent(id) {
+    const event = eventsData.find(e => e.id === id);
+    if (!event) return;
+    const name = prompt("Event Name:", event.name);
+    const location = prompt("Location:", event.location);
+    const start = prompt("Start date/time (YYYY-MM-DD HH:MM):", event.start);
+    const end = prompt("End date/time (YYYY-MM-DD HH:MM):", event.end);
+    const allDay = confirm("All Day?");
+
+    Object.assign(event, { name, location, start, end, allDay });
+    saveEvents();
+}
+
+// --- usuwanie eventu ---
+function deleteEvent(id) {
+    if (!confirm("Delete this event?")) return;
+    eventsData = eventsData.filter(e => e.id !== id);
+    saveEvents();
+}
+
+// --- zapis eventów do json ---
+async function saveEvents() {
+    try {
+        await fetch(saveEventsUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(eventsData)
+        });
+        renderCalendar();
+        renderEventList();
+    } catch (err) {
+        console.error('Error saving events:', err);
     }
 }

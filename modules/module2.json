@@ -5,8 +5,8 @@
     "type": "knob_array"
   },
   "keys": {
-    "KNOB1": "Brightness",
-    "KNOB2": "Zoom",
-    "KNOB3": "Vertical Scroll"
+    "KNOB1": "Horizontal Scroll",
+    "KNOB2": "Vertical Scroll",
+    "KNOB3": "Zoom"
   }
 }

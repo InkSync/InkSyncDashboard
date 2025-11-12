@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 MODULES_DIR = 'modules'
+EVENTS_DIR = 'events'
 
 
 class ModuleType(str, Enum):
@@ -66,6 +67,23 @@ def save_module(page):
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
     return jsonify({'status': 'saved'})
+
+@app.route('/api/events')
+def get_events():
+    file_path = os.path.join(EVENTS_DIR, 'events.json')
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return jsonify(json.load(f))
+    return jsonify([])  # pusty array jeśli brak
+
+@app.route('/api/save/events', methods=['POST'])
+def save_events():
+    file_path = os.path.join(EVENTS_DIR, 'internal.json')
+    data = request.get_json()
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2)
+    return jsonify({'status': 'saved'})
+
 
 
 if __name__ == '__main__':

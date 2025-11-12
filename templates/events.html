@@ -1,9 +1,30 @@
 {% include 'header.html' with context %}
-
 <div class="container">
+
     {% include 'sidebar.html' with context %}
 
+    <main class="content">
+        <h2>Events</h2>
+        <div id="calendar"></div>
 
+        <div class="event-list">
+            <h3>Event List</h3>
+            <table id="events-table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>All Day</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button id="add-event-btn">Add Event</button>
+        </div>
+    </main>
 </div>
 
-{% include 'footer.html' %}
+{% include 'footer.html' with context %}

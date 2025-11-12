@@ -504,4 +504,39 @@ nav {
     width: 100%;
 }
 
+#calendar {
+    margin-bottom: 30px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+}
 
+.event-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.event-list th, .event-list td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.event-list th {
+    background: #f0f0f0;
+}
+
+.event-list button {
+    padding: 4px 8px;
+    margin-right: 4px;
+    cursor: pointer;
+    border: none;
+    background: #111;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.event-list button:hover {
+    background: #333;
+}
