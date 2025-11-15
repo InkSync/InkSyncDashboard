@@ -9,6 +9,11 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 MODULES_DIR = 'modules'
 EVENTS_DIR = 'events'
 
+integration_status = {
+    "microsoft": False,
+    "apple": False,
+    "google": False
+}
 
 class ModuleType(str, Enum):
     KEYPAD = "keypad"
@@ -85,7 +90,29 @@ def save_events():
     return jsonify({'status': 'saved'})
 
 
+@app.route("/api/integrate", methods=["POST"])
+def set_integration():
+    data = request.get_json()
+    service = data.get("service")
+
+    if service not in integration_status:
+        return jsonify({"error": "Unknown service"}), 400
+
+    integration_status[service] = True
+    return jsonify({"status": "OK"})
+
+
+@app.route("/api/integration-status/<service>", methods=["GET"])
+def get_integration_status(service):
+    if service not in integration_status:
+        return jsonify({"error": "Unknown service"}), 400
+
+    return jsonify({
+        "service": service,
+        "integrated": integration_status[service]
+    })
 
 if __name__ == '__main__':
     os.makedirs(MODULES_DIR, exist_ok=True)
+    os.makedirs(EVENTS_DIR, exist_ok=True)
     app.run(debug=True)

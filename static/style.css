@@ -79,7 +79,7 @@ nav {
 
 
 .nav-btn:hover svg *,
-.nav-btn.active svg *{
+.nav-btn.active svg * {
     stroke: #fff;
 }
 
@@ -508,8 +508,11 @@ nav {
 /* --- popup --- */
 .popup {
     position: fixed;
-    top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.6);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -585,14 +588,14 @@ nav {
     background-color: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .05);
     padding: 1.25rem;
-    margin-bottom: 1.5rem;      /* space between cards */
+    margin-bottom: 1.5rem; /* space between cards */
 }
 
 /* Calendar placeholder (you can style the actual calendar widget separately) */
 #calendar-section {
-    min-height: 350px;          /* give it some breathing room */
+    min-height: 350px; /* give it some breathing room */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -654,4 +657,113 @@ nav {
 
 #events-table tbody tr:hover {
     background-color: #d8d8d8;
+}
+
+/* --- Settings --- */
+.settings-list {
+    list-style: none;
+    padding: 40px;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 900px;
+}
+
+.settings-item {
+    margin-bottom: 50px;
+}
+
+.settings-item h3 {
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.integration-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.integration-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+.integration-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+}
+
+.icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.integration-label {
+    font-size: 1.25rem;
+}
+
+.integration-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.integration-btn {
+    padding: 12px 20px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: opacity 0.2s;
+}
+
+.integration-btn:hover {
+    opacity: 0.8;
+}
+
+.status-indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #444;
+    border: 2px solid #222;
+}
+
+.status-indicator.active {
+    background: #3bff3b;
+    box-shadow: 0 0 6px #3bff3b;
+}
+
+#refresh-interval-label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+#refresh-interval {
+    width: 100%;
+    padding: 14px 12px;
+    border-radius: 10px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    font-size: 1.1rem;
 }
