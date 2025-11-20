@@ -378,3 +378,191 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshIndicators();
 });
 
+/* --- LAYOUT CREATOR PAGE --- */
+const workspace = document.getElementById('workspace');
+let widgetCount = 0;
+let draggedType = null;
+
+// --- Drag start z panelu górnego ---
+document.querySelectorAll('.widget-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+        draggedType = e.target.dataset.type;
+    });
+});
+
+// --- Drop na workspace ---
+workspace.addEventListener('dragover', e => e.preventDefault());
+workspace.addEventListener('drop', e => {
+    e.preventDefault();
+    if (!draggedType) return;
+
+    const widget = document.createElement('div');
+    widget.className = 'widget';
+    widget.id = 'widget' + widgetCount++;
+    widget.style.left = e.offsetX + 'px';
+    widget.style.top = e.offsetY + 'px';
+    widget.style.width = '150px';
+    widget.style.height = '150px';
+
+    switch(draggedType) {
+        case 'events':
+            widget.innerHTML = '<strong>Lista Eventów</strong><ul><li>Event 1</li><li>Event 2</li></ul>';
+            break;
+        case 'digitalClock':
+            widget.innerHTML = '<div id="digital'+widget.id+'">00:00:00</div>';
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('digital'+widget.id).innerText = now.toLocaleTimeString();
+            }, 1000);
+            break;
+        case 'analogClock':
+            widget.innerHTML = '<canvas width="100" height="100"></canvas>';
+            drawAnalogClock(widget.querySelector('canvas'));
+            setInterval(() => drawAnalogClock(widget.querySelector('canvas')), 1000);
+            break;
+        case 'text':
+            widget.innerHTML = 'Twój tekst...';
+            widget.contentEditable = true;
+            break;
+        case 'calendar':
+            const calDiv = document.createElement('div');
+            calDiv.id = 'fc-' + widget.id;
+            widget.appendChild(calDiv);
+            workspace.appendChild(widget); // musimy dodać przed renderem FullCalendar
+            const calendar = new FullCalendar.Calendar(calDiv, {
+                initialView: 'dayGridMonth',
+                height: '100%',
+                contentHeight: '100%',
+                expandRows: true
+            });
+            calendar.render();
+            makeDraggableResizable(widget, calendar);
+            draggedType = null;
+            return; // wyjście, bo widget już dodany
+    }
+
+    workspace.appendChild(widget);
+    makeDraggableResizable(widget);
+    draggedType = null;
+});
+
+// --- Funkcja do draggable + resizable ---
+function makeDraggableResizable(el, calendar=null) {
+    // --- Draggable ---
+    let offsetX, offsetY, isDragging = false;
+    el.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('resizer')) return;
+        isDragging = true;
+        offsetX = e.clientX - el.offsetLeft;
+        offsetY = e.clientY - el.offsetTop;
+        el.style.borderColor = '#2980b9';
+    });
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        el.style.borderColor = '#7f8c8d';
+    });
+    document.addEventListener('mousemove', e => {
+        if (isDragging) {
+            el.style.left = e.clientX - offsetX + 'px';
+            el.style.top = e.clientY - offsetY + 'px';
+        }
+    });
+
+    // --- Resizable ---
+    const resizer = document.createElement('div');
+    resizer.className = 'resizer';
+    el.appendChild(resizer);
+
+    let isResizing = false;
+    resizer.addEventListener('mousedown', e => {
+        e.stopPropagation();
+        isResizing = true;
+        document.addEventListener('mousemove', resizeMove);
+        document.addEventListener('mouseup', resizeStop);
+    });
+
+    function resizeMove(e) {
+        if (!isResizing) return;
+        const rect = el.getBoundingClientRect();
+        const newWidth = e.clientX - rect.left;
+        const newHeight = e.clientY - rect.top;
+        if (newWidth > 50) el.style.width = newWidth + 'px';
+        if (newHeight > 30) el.style.height = newHeight + 'px';
+
+        // Aktualizacja FullCalendar przy resize
+        if (calendar) {
+            calendar.setOption('height', el.clientHeight);
+            calendar.setOption('contentHeight', el.clientHeight);
+        }
+
+        // Aktualizacja canvas analog clock
+        const canvas = el.querySelector('canvas');
+        if (canvas) {
+            canvas.width = el.clientWidth - 20; // padding
+            canvas.height = el.clientHeight - 20;
+            drawAnalogClock(canvas);
+        }
+    }
+
+    function resizeStop() {
+        isResizing = false;
+        document.removeEventListener('mousemove', resizeMove);
+        document.removeEventListener('mouseup', resizeStop);
+    }
+}
+
+// --- Analog clock ---
+function drawAnalogClock(canvas) {
+    const ctx = canvas.getContext('2d');
+    const radius = Math.min(canvas.width, canvas.height) / 2;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width/2, canvas.height/2);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, radius-2, 0, 2*Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.strokeStyle = '#34495e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const now = new Date();
+    const sec = now.getSeconds();
+    const min = now.getMinutes();
+    const hr = now.getHours() % 12;
+
+    // Hour
+    ctx.save();
+    ctx.rotate((Math.PI/6)*hr + (Math.PI/360)*min + (Math.PI/21600)*sec);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0, -radius/2);
+    ctx.strokeStyle = '#2c3e50';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    // Minute
+    ctx.save();
+    ctx.rotate((Math.PI/30)*min + (Math.PI/1800)*sec);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0, -radius*0.7);
+    ctx.strokeStyle = '#2c3e50';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+
+    // Second
+    ctx.save();
+    ctx.rotate((Math.PI/30)*sec);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0, -radius*0.9);
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.translate(-canvas.width/2, -canvas.height/2);
+}

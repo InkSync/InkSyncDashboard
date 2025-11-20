@@ -769,3 +769,63 @@ nav {
     color: #fff;
     font-size: 1.1rem;
 }
+
+/* Layout Creator */
+#toolbar {
+    width: 100%;
+    background: #2c3e50;
+    color: white;
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    box-sizing: border-box;
+}
+
+.widget-item {
+    background: #34495e;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: grab;
+}
+
+#workspace {
+    flex: 1;
+    background: #ecf0f1;
+    position: relative;
+    min-height: 600px;
+    border: 2px solid #bdc3c7;
+    margin-top: 10px;
+}
+
+.widget {
+    position: absolute;
+    border: 2px dashed #7f8c8d;
+    padding: 10px;
+    background: white;
+    cursor: move;
+    min-width: 100px;
+    min-height: 50px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* uchwyt resize w prawym dolnym rogu */
+.widget .resizer {
+    width: 10px;
+    height: 10px;
+    background: #2980b9;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
+}
+
+.widget canvas {
+    display: block;
+}
+
+#workspace .fc {
+    width: 300px; /* możesz ustawić rozmiar kalendarza */
+    height: 300px;
+}
