@@ -245,7 +245,7 @@ function renderCalendarEvents() {
             start: ev.start,
             end: ev.end,
             allDay: ev.allDay,
-            extendedProps: { id: ev.id, location: ev.location }
+            extendedProps: {id: ev.id, location: ev.location}
         });
     });
 }
@@ -257,7 +257,7 @@ function removeEvent(id) {
 
     fetch("/api/save/events", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(events)
     }).catch(err => console.error("Error saving events after delete:", err));
 }
@@ -335,7 +335,7 @@ function openAddEventPopup(defaultDate = "") {
 
         fetch("/api/save/events", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(events)
         }).catch(err => console.error("Error saving events:", err));
 
@@ -367,8 +367,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await fetch("/api/integrate", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ service })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({service})
             });
 
             refreshIndicators();
@@ -379,21 +379,23 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* --- LAYOUT CREATOR PAGE --- */
-const workspace   = document.getElementById("workspace") || document.querySelector(".layout-workspace");
-const toolbarItems= document.querySelectorAll(".widget-item");
+const workspace = document.getElementById("workspace") || document.querySelector(".layout-workspace");
+const toolbarItems = document.querySelectorAll(".widget-item");
 
 const GRID_SIZE = 20;
 let currentDraggedType = null;
 
 /* ---- Drag start from toolbar ---- */
 toolbarItems.forEach(item => {
-    item.addEventListener("dragstart", e => {
-        currentDraggedType = e.target.dataset.type;
-    });
+    if (item.dataset.type) {            // tylko prawdziwe elementy, nie przycisk zapisu
+        item.addEventListener("dragstart", e => {
+            currentDraggedType = e.target.dataset.type;
+        });
+    }
 });
 
 /* ---- Allow dropping on workspace ---- */
-workspace.addEventListener("dragover", e => { e.preventDefault(); });
+workspace.addEventListener("dragover", e => e.preventDefault());
 
 workspace.addEventListener("drop", e => {
     e.preventDefault();
@@ -401,61 +403,124 @@ workspace.addEventListener("drop", e => {
 
     const rect = workspace.getBoundingClientRect();
 
-    let x = Math.round((e.clientX - rect.left)/GRID_SIZE)*GRID_SIZE;
-    let y = Math.round((e.clientY - rect.top)/GRID_SIZE)*GRID_SIZE;
+    let x = Math.round((e.clientX - rect.left) / GRID_SIZE) * GRID_SIZE;
+    let y = Math.round((e.clientY - rect.top) / GRID_SIZE) * GRID_SIZE;
 
     createWidget(currentDraggedType, x, y);
     currentDraggedType = null;
 });
 
-/* ---- Create widget ---- */
+/* ---- Create widget (drag‑drop) ---- */
 function createWidget(type, x, y) {
     const widget = document.createElement("div");
     widget.classList.add("widget", `widget-${type}`);
-    widget.style.left  = `${x}px`;
-    widget.style.top   = `${y}px`;
+    widget.dataset.type = type;
+    widget.style.left = `${x}px`;
+    widget.style.top = `${y}px`;
     widget.style.width = "200px";
-    widget.style.height= "120px";
+    widget.style.height = "120px";
 
     switch (type) {
         case "events":
-            widget.innerHTML = "<ul class='event-list'></ul>";
+            /* ----------  Event list (English)  --------- */
+            widget.innerHTML = "<b>Event List</b>";
+            const ul = document.createElement('ul');
+            ul.className = 'event-list';
             const sampleEvents = [
-                "10:00 Meeting",
-                "12:30 Lunch",
-                "15:45 Project presentation",
-                "18:20 Job interview"
+                "Meeting with team – 10:00",
+                "Lunch – 12:30",
+                "Project presentation – 15:45",
+                "Interview – 18:20"
             ];
-            const ul = widget.querySelector('.event-list');
-            sampleEvents.forEach(ev => {
+            sampleEvents.forEach(e => {
                 const li = document.createElement('li');
-                li.textContent = ev;
+                li.textContent = e;
                 ul.appendChild(li);
             });
+            widget.appendChild(ul);
             break;
 
         case "digitalClock":
-            widget.innerHTML = "<div class='clock-digital'></div>";
+            widget.innerHTML = "<b>Digital Clock</b><div class='clock-digital'></div>";
             startDigitalClock(widget);
             break;
 
         case "analogClock":
-            widget.innerHTML = `
-                <div class="clock-analog">
-                    <div class="clock-hand clock-hour"></div>
-                    <div class="clock-hand clock-minute"></div>
-                    <div class="clock-hand clock-second"></div>
-                    <div class="clock-center"></div>
-                </div>`;
-            startAnalogClock(widget);
+            widget.innerHTML = "<b>Analog Clock</b>";
             break;
 
         case "text":
-            widget.innerHTML = "<p>Wpisz coś...</p>";
+            widget.innerHTML =
+                "<b>Text</b>" +
+                "<textarea class='widget-textarea' style='width:100%;height:calc(100% - 30px);'></textarea>";
             break;
 
+
         case "calendar":
-            widget.innerHTML = generateCalendar();
+            widget.innerHTML = "<b>Calendar</b>" + generateCalendar();
+            break;
+    }
+
+    addResizeHandle(widget);
+    enableDragging(widget);
+    addCloseButton(widget);           // close button
+
+    workspace.appendChild(widget);
+}
+
+/* ---- Create widget from saved layout JSON (English titles) ---- */
+function createWidgetFromLayout(elem) {
+    const type = elem.type || 'calendar';
+    const widget = document.createElement("div");
+    widget.classList.add("widget", `widget-${type}`);
+    widget.dataset.type = type;
+    widget.style.left = `${elem.x}px`;
+    widget.style.top = `${elem.y}px`;
+    widget.style.width = `${elem.width || 200}px`;
+    widget.style.height = `${elem.height || 120}px`;
+
+    /* optional font size */
+    if (elem.font && elem.font.size) {
+        widget.style.fontSize = `${elem.font.size}px`;
+    }
+
+    switch (type) {
+        case "events":
+            widget.innerHTML = "<b>Event List</b>";
+            const ul = document.createElement('ul');
+            ul.className = 'event-list';
+            const sampleEvents = [
+                "Meeting with team – 10:00",
+                "Lunch – 12:30",
+                "Project presentation – 15:45",
+                "Interview – 18:20"
+            ];
+            sampleEvents.forEach(e => {
+                const li = document.createElement('li');
+                li.textContent = e;
+                ul.appendChild(li);
+            });
+            widget.appendChild(ul);
+            break;
+        case "digitalClock":   // map “time” → “digitalClock”
+        case "time":
+            widget.innerHTML = "<b>Digital Clock</b><div class='clock-digital'></div>";
+            startDigitalClock(widget);
+            break;
+        case "analogClock":
+            widget.innerHTML = "<b>Analog Clock</b>";
+            break;
+        case "text":
+            widget.innerHTML =
+                "<b>Text</b>" +
+                "<textarea class='widget-textarea' style='width:100%;height:calc(100% - 30px);'></textarea>";
+            if (elem.content) {
+                const ta = widget.querySelector('.widget-textarea');
+                ta.value = elem.content;
+            }
+            break;
+        case "calendar":
+            widget.innerHTML = "<b>Calendar</b>" + generateCalendar();
             break;
     }
 
@@ -466,62 +531,19 @@ function createWidget(type, x, y) {
     workspace.appendChild(widget);
 }
 
-/* ---- Digital clock logic ---- */
-function startDigitalClock(widget) {
-    const display = widget.querySelector('.clock-digital');
-
-    function tick() {
-        const now  = new Date();
-        const hh   = String(now.getHours()).padStart(2, '0');
-        const mm   = String(now.getMinutes()).padStart(2, '0');
-        display.textContent = `${hh}:${mm}`;
-
-        /* Dynamic font‑size – keeps the time readable no matter widget size */
-        const w = widget.clientWidth;
-        const h = widget.clientHeight;
-        const base = Math.min(w, h) / 2;   // tweak divisor for taste
-        display.style.fontSize = `${base}px`;
-    }
-
-    tick();                // init immediately
-    setInterval(tick, 1000); // update every second
-}
-
-/* ---- Analog clock logic ---- */
-function startAnalogClock(widget) {
-    function update() {
-        const now   = new Date();
-        const sec   = now.getSeconds();
-        const min   = now.getMinutes();
-        const hour  = (now.getHours() % 12) + min / 60;
-
-        const secDeg  = sec * 6;                     // 360/60
-        const minDeg  = min * 6 + sec * 0.1;          // minute hand also moves with seconds
-        const hourDeg = hour * 30;                    // 360/12
-
-        widget.querySelector('.clock-hour').style.transform   = `rotate(${hourDeg}deg)`;
-        widget.querySelector('.clock-minute').style.transform = `rotate(${minDeg}deg)`;
-        widget.querySelector('.clock-second').style.transform = `rotate(${secDeg}deg)`;
-    }
-
-    update();                // init immediately
-    setInterval(update, 1000); // tick every second
-}
-
 /* ---- Resizing ---- */
 function addResizeHandle(widget) {
-    const handle   = document.createElement("div");
+    const handle = document.createElement("div");
     handle.classList.add("resize-handle");
 
-    let resizing = false,
-        startX, startY, startW, startH;
+    let resizing = false, startX, startY, startW, startH;
 
     handle.addEventListener("mousedown", e => {
         resizing = true;
-        startX   = e.clientX;
-        startY   = e.clientY;
-        startW   = widget.offsetWidth;
-        startH   = widget.offsetHeight;
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = widget.offsetWidth;
+        startH = widget.offsetHeight;
         e.stopPropagation();
     });
 
@@ -533,90 +555,189 @@ function addResizeHandle(widget) {
 
         newW = Math.max(60, newW);
         newH = Math.max(40, newH);
-
         newW = Math.round(newW / GRID_SIZE) * GRID_SIZE;
         newH = Math.round(newH / GRID_SIZE) * GRID_SIZE;
 
-        widget.style.width  = `${newW}px`;
+        widget.style.width = `${newW}px`;
         widget.style.height = `${newH}px`;
     });
 
-    document.addEventListener("mouseup", () => { resizing = false; });
+    document.addEventListener("mouseup", () => {
+        resizing = false;
+    });
 
     widget.appendChild(handle);
 }
 
-/* ---- Removing ---- */
-function addCloseButton(widget) {
-    const btn = document.createElement('span');
-    btn.classList.add('widget-close');
-    btn.innerHTML = '&times;';   // znak ×
-
-    /* Nie chcemy, aby kliknięcie na X wywołało drag/resize */
-    btn.addEventListener('click', e => {
-        e.stopPropagation();      // nie propaguj zdarzenia dalej
-        widget.remove();           // usuń cały element z DOM‑a
-    });
-
-    widget.appendChild(btn);
-}
-
 /* ---- Dragging inside workspace ---- */
 function enableDragging(widget) {
-    let dragging = false,
-        offsetX, offsetY;
+    let dragging = false, offsetX, offsetY;
 
     widget.addEventListener("mousedown", e => {
         if (e.target.classList.contains('resize-handle')) return;
         dragging = true;
-        offsetX  = e.offsetX;
-        offsetY  = e.offsetY;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
     });
 
     document.addEventListener("mousemove", e => {
         if (!dragging) return;
-
         const rect = workspace.getBoundingClientRect();
+
         let x = e.clientX - rect.left - offsetX;
         let y = e.clientY - rect.top - offsetY;
 
         x = Math.round(x / GRID_SIZE) * GRID_SIZE;
         y = Math.round(y / GRID_SIZE) * GRID_SIZE;
 
-        x = Math.max(0, Math.min(x, workspace.clientWidth  - widget.offsetWidth));
+        x = Math.max(0, Math.min(x, workspace.clientWidth - widget.offsetWidth));
         y = Math.max(0, Math.min(y, workspace.clientHeight - widget.offsetHeight));
 
         widget.style.left = `${x}px`;
-        widget.style.top  = `${y}px`;
+        widget.style.top = `${y}px`;
     });
 
-    document.addEventListener("mouseup", () => { dragging = false; });
+    document.addEventListener("mouseup", () => {
+        dragging = false;
+    });
 }
 
-/* ---- Simple monthly calendar (unchanged) ---- */
-function generateCalendar(){
-    const now   = new Date();
-    const month = now.toLocaleString('pl-PL', {month:'long'});
-    const year  = now.getFullYear();
-    const today = now.getDate();                     // <-- nowy wiersz
+/* ---- Close button helper ---- */
+function addCloseButton(widget) {
+    const btn = document.createElement('span');
+    btn.classList.add('widget-close');
+    btn.innerHTML = '&times;';
+    btn.addEventListener('click', e => {
+        e.stopPropagation();
+        widget.remove();
+    });
+    widget.appendChild(btn);
+}
 
-    let html=`<b>${month} ${year}</b><table><tr>`;
+/* ---- Digital clock logic (already present) ---- */
+function startDigitalClock(widget) {
+    const display = widget.querySelector('.clock-digital');
 
-    const days=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
-    days.forEach(d=>html+=`<th>${d}</th>`);
-    html+="</tr><tr>";
+    function tick() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        display.textContent = `${hh}:${mm}`;
 
-    const firstDay=(new Date(year,now.getMonth(),1).getDay()+6)%7;
-    for(let i=0;i<firstDay;i++)html+='<td></td>';
-
-    const lastDay=new Date(year,now.getMonth()+1,0).getDate();
-    for(let d=1;d<=lastDay;d++){
-        if(d===today) html+=`<td class="cal-today">${d}</td>`;
-        else          html+=`<td>${d}</td>`;
-        if((d+firstDay)%7===0)html+="</tr><tr>";
+        /* dynamic font‑size relative to widget size */
+        const w = widget.clientWidth;
+        const h = widget.clientHeight;
+        const base = Math.min(w, h) / 2;   // 4 → większa czcionka
+        display.style.fontSize = `${base}px`;
     }
 
-    html+="</tr></table>";
+    tick();
+    setInterval(tick, 1000);
+}
+
+/* ---- Analog clock logic (already present) ---- */
+function startAnalogClock(widget) {
+    function update() {
+        const now = new Date();
+        const sec = now.getSeconds();
+        const min = now.getMinutes();
+        const hour = (now.getHours() % 12) + min / 60;
+
+        const secDeg = sec * 6;
+        const minDeg = min * 6 + sec * 0.1;
+        const hourDeg = hour * 30;
+
+        widget.querySelector('.clock-hour').style.transform = `rotate(${hourDeg}deg)`;
+        widget.querySelector('.clock-minute').style.transform = `rotate(${minDeg}deg)`;
+        widget.querySelector('.clock-second').style.transform = `rotate(${secDeg}deg)`;
+    }
+
+    update();
+    setInterval(update, 1000);
+}
+
+/* ---- Simple monthly calendar (English month names) ---- */
+function generateCalendar() {
+    const now = new Date();
+    const month = now.toLocaleString('en-US', {month: 'long'});   // ← English
+    const year = now.getFullYear();
+
+    let html = `<b>${month} ${year}</b><table><tr>`;
+
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    days.forEach(d => html += `<th>${d}</th>`);
+    html += "</tr><tr>";
+
+    const firstDay = (new Date(year, now.getMonth(), 1).getDay() + 6) % 7;
+    for (let i = 0; i < firstDay; i++) html += '<td></td>';
+
+    const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+    for (let d = 1; d <= lastDay; d++) {
+        if (d === now.getDate()) {
+            html += `<td class="cal-today">${d}</td>`;
+        } else {
+            html += `<td>${d}</td>`;
+        }
+        if ((d + firstDay) % 7 === 0) html += "</tr><tr>";
+    }
+
+    html += "</tr></table>";
     return html;
 }
 
+/* ---- Load layout on page load ---- */
+window.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/layout')
+        .then(r => r.json())
+        .then(data => {
+            if (data.elements && Array.isArray(data.elements)) {
+                data.elements.forEach(el => createWidgetFromLayout(el));
+            }
+        })
+        .catch(err => {
+            console.warn('Brak zapisanych layoutów:', err);
+        });
+});
+
+/* ---- Save current layout on button click ---- */
+document.getElementById('saveLayoutBtn').addEventListener('click', () => {
+    const elements = [];
+    workspace.querySelectorAll('.widget').forEach(widget=>{
+        const typeMatch=widget.className.match(/widget-(\w+)/);
+        if (!typeMatch) return;
+        const type = typeMatch[1];
+
+        const elem = {
+            type: type,
+            x: parseInt(widget.style.left,10),
+            y: parseInt(widget.style.top,10),
+            width: widget.offsetWidth,
+            height: widget.offsetHeight
+        };
+
+        /* ---- capture text content if applicable ---- */
+        if (type === 'text') {
+            const ta = widget.querySelector('.widget-textarea');
+            elem.content = ta ? ta.value : "";
+        }
+
+        elements.push(elem);
+    });
+
+    const layoutData = {elements};
+
+    fetch('/api/layout', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(layoutData)
+    })
+    .then(r=>r.json())
+    .then(res=>{
+        console.log('Layout saved:', res);
+        alert('Layout saved!');
+    })
+    .catch(err=>{
+        console.error(err);
+        alert('Error saving layout.');
+    });
+});

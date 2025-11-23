@@ -1,14 +1,17 @@
+# ... istniejące importy ...
+import json
 from flask import Flask, render_template, jsonify, request
 import os
-import json
 from enum import Enum
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 MODULES_DIR = 'modules'
-CONFIG_DIR = "configs"
-EVENTS_DIR = 'events'
+CONFIG_DIR  = "configs"
+EVENTS_DIR  = 'events'
+LAYOUT_DIR  = 'layout'        # <-- nowy katalog na layouty
+
 
 integration_status = {
     "microsoft": False,
@@ -134,8 +137,35 @@ def get_integration_status(service):
         "integrated": integration_status[service]
     })
 
+@app.route('/api/layout', methods=['GET'])
+def get_layout():
+    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
+    if not os.path.exists(file_path):
+        return jsonify({"elements": []})
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return jsonify(data)
+
+@app.route('/api/layout', methods=['POST'])
+def save_layout():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON payload"}), 400
+
+    os.makedirs(LAYOUT_DIR, exist_ok=True)
+    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({"status": "saved", "path": file_path})
+
+
 if __name__ == '__main__':
     os.makedirs(MODULES_DIR, exist_ok=True)
     os.makedirs(EVENTS_DIR, exist_ok=True)
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    os.makedirs(LAYOUT_DIR, exist_ok=True)
     app.run(debug=True)

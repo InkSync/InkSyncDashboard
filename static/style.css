@@ -88,7 +88,7 @@ nav {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #2b2b2b;
+    background: #ffffff;
     overflow-y: auto;
 }
 
@@ -776,7 +776,7 @@ nav {
     display: flex;
     gap: 10px;
     padding: 10px;
-    background: #2b2b2b;
+    background: #333333;
     border-bottom: 2px solid #444;
     margin-bottom: 15px;
 }
@@ -817,6 +817,14 @@ nav {
     padding: 4px;
     font-size: 14px;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+.widget b {
+    display: block;
+    text-align: center;
+    font-size: 120%;
+    margin-bottom: 6px;
 }
 
 /* --- lista eventów w widgetach --- */
@@ -826,9 +834,17 @@ nav {
     font-size: 150%;
 }
 
-/* opcjonalnie, aby nic nie “wykręcało” poza widget */
-.widget {
-    overflow: hidden;
+.widget-textarea{
+    background:none;          /* inherit widget’s light background */
+    border:none;
+    resize:none;
+    width:100%;
+    height:calc(100% - 30px);   /* leave space for title */
+    font-size:inherit;
+    color: #ffffff;                 /* dark text on light widget */
+}
+.widget-textarea:focus{
+    outline:1px solid #888;
 }
 
 /* Min‑sizes per widget type */
@@ -943,3 +959,9 @@ nav {
     color:#444;
 }
 
+/* ---- Przycisk „Zapisz Layout” w toolbarze ----- */
+.save-layout-btn{
+    background:#444;
+    cursor: pointer;
+}
+.save-layout-btn:hover{background:#555;}
