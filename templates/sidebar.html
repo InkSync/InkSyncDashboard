@@ -1,9 +1,6 @@
 <aside class="sidebar">
     <div class="logo">
-        <svg viewBox="0 0 64 64">
-            <use href="{{ url_for('static', filename='favicon.svg') }}"></use>
-        </svg>
-        InkSync
+        <img src="{{ url_for('static', filename='inksync_logo.svg') }}" alt="InkSync Logo" class="logo-img">
     </div>
     <nav>
         <button class="nav-btn {% if key == 'device' %}active{% endif %}" onclick="window.location.href='{{ url_for

@@ -37,9 +37,19 @@ body {
     margin-bottom: 1.5em;
 }
 
-.logo svg {
-    width: 32px;
-    height: 32px;
+.logo svg,
+.logo-img {
+    width: 160px;
+    height: auto;
+    display: block;
+}
+
+/* (opcjonalnie) lekka responsywność dla bardzo wysokich ekranów */
+@media (min-height: 900px) {
+    .logo svg,
+    .logo-img {
+        width: 180px;
+    }
 }
 
 

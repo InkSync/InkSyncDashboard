@@ -163,7 +163,7 @@ function initEventsPage() {
         initialView: "dayGridMonth",
         selectable: true,
         editable: false,
-        locale: 'pl',
+        locale: 'en-us',
         height: "100%",
         headerToolbar: {
             left: "prev,next today",
