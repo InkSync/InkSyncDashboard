@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelBtn = document.getElementById("cancel-automation-btn");
     const deleteBtn = document.getElementById("delete-automation-btn");
     const createBtn = document.getElementById("create-automation-btn");
+    const nameInput = document.getElementById("automation-name-input");
 
     let automations = [];
     let currentAutomation = null;
@@ -122,9 +123,18 @@ document.addEventListener("DOMContentLoaded", () => {
         currentAutomation = automations.find(a => a.id === id);
         if (!currentAutomation) return;
         popupTitle.textContent = `Automation: ${currentAutomation.name}`;
+        nameInput.value = currentAutomation.name;
         renderBlockEditor();
         popup.classList.remove("hidden");
     }
+
+    nameInput.addEventListener("input", () => {
+        if (currentAutomation) {
+            const v = nameInput.value.trim();
+            currentAutomation.name = v || "Bez nazwy";
+            popupTitle.textContent = `Automation: ${currentAutomation.name}`;
+        }
+    });
 
     function renderBlockEditor() {
         blocksContainer.innerHTML = "";

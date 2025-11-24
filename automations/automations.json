@@ -1,33 +1,33 @@
 [
   {
-    "id": "bbe9d234-24c1-4215-b4e2-486b404c4afc",
-    "name": "Automation 1",
-    "enabled": true,
     "blocks": [
       {
-        "id": "bc1c746d-030a-4141-afbb-9de40a9a774b",
+        "id": "a6d6822c-d8d9-415b-9881-f7d08550f096",
         "type": "Start",
         "config": {}
       },
       {
-        "id": "f0677268-8165-4901-b5b1-156d77c06cd0",
-        "type": "Key pressed",
         "config": {
           "key": "KEY0"
-        }
+        },
+        "id": "f0677268-8165-4901-b5b1-156d77c06cd0",
+        "type": "Key pressed"
       },
       {
-        "id": "ae726db4-bc2a-4aaa-a4c0-54497bab0ea3",
-        "type": "Send a key",
         "config": {
           "key": "Alt+F4"
-        }
+        },
+        "id": "ae726db4-bc2a-4aaa-a4c0-54497bab0ea3",
+        "type": "Send a key"
       },
       {
-        "id": "6dc3ebec-3b1f-4319-b7c5-1bb4170b7622",
+        "id": "bcdd488e-c84d-4cf9-986c-a8e2fe885098",
         "type": "End",
         "config": {}
       }
-    ]
+    ],
+    "enabled": true,
+    "id": "bbe9d234-24c1-4215-b4e2-486b404c4afc",
+    "name": "YEAH"
   }
 ]

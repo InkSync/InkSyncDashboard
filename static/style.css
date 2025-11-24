@@ -1133,3 +1133,25 @@ nav {
 .btn-secondary:hover { background: #888; }
 .btn-danger:hover { background: #a52020; }
 
+/* NOWE: styl pola nazwy automacji */
+.automation-name-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+.automation-name-row label {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #444;
+}
+#automation-name-input {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.85em;
+    background: #fff;
+}
+#automation-name-input:focus {
+    outline: 2px solid #222;
+}
