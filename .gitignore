@@ -5,3 +5,7 @@ layout/layout.json
 events/internal.json
 layout/layout.json
 automations/automations.json
+__pycache__/app.cpython-313.pyc
+.idea/misc.xml
+.idea/jsLibraryMappings.xml
+.idea/copilotDiffState.xml
