@@ -1,8 +1,0 @@
-{
-  "module_type": "KeypadModule",
-  "device_name": "InkSync-Keypad",
-  "uuid": "d92ea509-f20e-4f80-a726-7c0116e57a84",
-  "slot": 1,
-  "manufacturer": "InkSync Ltd.",
-  "fw_version": "0.2.0"
-}
