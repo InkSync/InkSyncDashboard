@@ -815,8 +815,7 @@ nav {
 
 /* Min‑sizes per widget type */
 .widget-events      { min-width: 180px; min-height: 120px; }
-.widget-digitalClock{ min-width: 150px; min-height: 80px; }
-.widget-analogClock{ min-width: 200px; min-height: 140px; }
+.widget-time{ min-width: 150px; min-height: 80px; }
 .widget-text        { min-width: 200px; min-height: 100px; }
 .widget-calendar    { min-width: 250px; min-height: 120px; }
 
@@ -832,40 +831,13 @@ nav {
 }
 
 /* Digital clock specific styling */
-.clock-digital {
+.time{
     display:flex;
     align-items:center;
     justify-content:center;
     height:100%;
     font-weight:bold;
     color:white;
-}
-
-/* Analog clock UI */
-.clock-analog{
-    position:relative;
-    width:100%;
-    height:100%;
-    border-radius:50%;
-    background:#333;
-}
-.clock-hand{
-    position:absolute;
-    bottom:50%; left:50%;
-    transform-origin:bottom center;
-    background:#fff;
-    border-radius:2px;
-}
-.clock-hour   { width:4px;  height:30%; }
-.clock-minute { width:3px;  height:40%; }
-.clock-second { width:2px;  height:45%; background:red; }
-.clock-center{
-    position:absolute;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    width:6px; height:6px;
-    background:#fff;
-    border-radius:50%;
 }
 
 /* Calendar inside widget */
@@ -927,7 +899,7 @@ nav {
 
 /* ---- Przycisk „Zapisz Layout” w toolbarze ----- */
 .save-layout-btn{
-    background:#444;
+    background: #b30c0c;
     cursor: pointer;
 }
 .save-layout-btn:hover{background:#555;}

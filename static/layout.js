@@ -43,7 +43,6 @@ function createWidget(type, x, y) {
     switch (type) {
         case "events":
             /* ----------  Event list (English)  --------- */
-            widget.innerHTML = "<b>Event List</b>";
             const ul = document.createElement('ul');
             ul.className = 'event-list';
             const sampleEvents = [
@@ -60,24 +59,19 @@ function createWidget(type, x, y) {
             widget.appendChild(ul);
             break;
 
-        case "digitalClock":
-            widget.innerHTML = "<b>Digital Clock</b><div class='clock-digital'></div>";
+        case "time":
+            widget.innerHTML = "<div class='time'></div>";
             startDigitalClock(widget);
-            break;
-
-        case "analogClock":
-            widget.innerHTML = "<b>Analog Clock</b>";
             break;
 
         case "text":
             widget.innerHTML =
-                "<b>Text</b>" +
                 "<textarea class='widget-textarea' style='width:100%;height:calc(100% - 30px);'></textarea>";
             break;
 
 
         case "calendar":
-            widget.innerHTML = "<b>Calendar</b>" + generateCalendar();
+            widget.innerHTML = generateCalendar();
             break;
     }
 
@@ -122,13 +116,9 @@ function createWidgetFromLayout(elem) {
             });
             widget.appendChild(ul);
             break;
-        case "digitalClock":   // map “time” → “digitalClock”
         case "time":
-            widget.innerHTML = "<b>Digital Clock</b><div class='clock-digital'></div>";
+            widget.innerHTML = "<div class='time'></div>";
             startDigitalClock(widget);
-            break;
-        case "analogClock":
-            widget.innerHTML = "<b>Analog Clock</b>";
             break;
         case "text":
             widget.innerHTML =
@@ -236,7 +226,7 @@ function addCloseButton(widget) {
 
 /* ---- Digital clock logic (already present) ---- */
 function startDigitalClock(widget) {
-    const display = widget.querySelector('.clock-digital');
+    const display = widget.querySelector('.time');
 
     function tick() {
         const now = new Date();
@@ -310,6 +300,7 @@ document.getElementById('saveLayoutBtn').addEventListener('click', () => {
             type: type,
             x: parseInt(widget.style.left,10),
             y: parseInt(widget.style.top,10),
+            text_style: "bold",
             width: widget.offsetWidth,
             height: widget.offsetHeight
         };
