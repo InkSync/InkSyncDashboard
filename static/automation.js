@@ -229,11 +229,9 @@ document.addEventListener("DOMContentLoaded", () => {
             id,
             name: `Automation ${automations.length + 1}`,
             enabled: true,
-            blocks: [
-                { id: crypto.randomUUID(), type: "Start", config: {} },
-                { id: crypto.randomUUID(), type: "End", config: {} }
-            ]
+            blocks: [] // No start and end blocks initially
         };
+
         automations.push(auto);
         saveAutomationsToServer().then(() => {
             renderAutomationList();
@@ -246,10 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const type = blockTypeSelect.value;
         if (!type) return;
 
-        // Wstaw przed End
-        const endIndex = currentAutomation.blocks.findIndex(b => b.type === "End");
+        // Add new block after any existing blocks but before Start/End if they exist
+        const insertionIndex = currentAutomation.blocks.length > 0 ? currentAutomation.blocks.length : 0;
         const newBlock = buildBlock(type);
-        currentAutomation.blocks.splice(endIndex, 0, newBlock);
+        currentAutomation.blocks.splice(insertionIndex, 0, newBlock);
         blockTypeSelect.value = "";
         renderBlockEditor();
     }
@@ -277,19 +275,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function saveCurrentAutomation() {
         if (!currentAutomation) return;
-        // prosta walidacja: Start + End zawsze pierwszy/ostatni
-        normalizeStartEnd(currentAutomation);
         saveAutomationsToServer().then(() => {
             renderAutomationList();
             popup.classList.add("hidden");
         });
-    }
-
-    function normalizeStartEnd(auto) {
-        // Upewnij się że pierwszy jest Start a ostatni End
-        auto.blocks = auto.blocks.filter(b => b.type !== "Start" && b.type !== "End");
-        auto.blocks.unshift({ id: crypto.randomUUID(), type: "Start", config: {} });
-        auto.blocks.push({ id: crypto.randomUUID(), type: "End", config: {} });
     }
 
     // --- Events ---
