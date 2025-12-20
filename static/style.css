@@ -81,9 +81,9 @@ nav {
 .content {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    background: #ffffff;
-    overflow-y: auto;
+    flex-direction: column; /* stack children vertically */
+    gap: 10px; /* optional spacing */
+    height: 100%; /* make sure content fills container */
 }
 
 /* Tabs */
@@ -559,12 +559,20 @@ nav {
     margin-bottom: 1.5rem; /* space between cards */
 }
 
+.event-list {
+    flex: 3 1 0%; /* grow 3 parts */
+    min-height: 0; /* crucial for overflow to work */
+    overflow-y: auto; /* scroll if content exceeds */
+}
+
 /* Calendar placeholder (you can style the actual calendar widget separately) */
 #calendar-section {
     height: 70vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex: 7 1 0;
+    min-height: 0;
 }
 
 #calendar {
@@ -772,6 +780,11 @@ nav {
     margin: 0 auto;
     position: relative;
     overflow: hidden;
+}
+
+.layout-workspace * {
+    user-select: none;  /* disable text selection inside workspace */
+    pointer: cursor;    /* show pointer cursor inside workspace */
 }
 
 /* --- Widgets --- */

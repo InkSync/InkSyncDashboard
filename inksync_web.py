@@ -1,4 +1,6 @@
 import json
+from datetime import datetime, date
+
 from flask import Flask, render_template, jsonify, request
 import os
 from enum import Enum
@@ -98,21 +100,128 @@ def check_files():
     })
 
 
+def parse_event_date(value: str) -> date:
+    if "T" in value:
+        # Trim nanoseconds if present
+        if "." in value:
+            value = value.split(".")[0]
+        return datetime.fromisoformat(value).date()
+    return date.fromisoformat(value)
+
 @app.route('/api/events')
 def get_events():
-    file_path = os.path.join(EVENTS_DIR, 'internal.json')
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return jsonify(json.load(f))
-    return jsonify([])
+    internal_events_path = os.path.join(EVENTS_DIR, 'internal.json')
+    google_events_path = os.path.join(EVENTS_DIR, 'google.json')
+    microsoft_events_path = os.path.join(EVENTS_DIR, 'microsoft.json')
 
-@app.route('/api/save/events', methods=['POST'])
-def save_events():
+    date_from_str = request.args.get('from')
+    date_to_str = request.args.get('to')
+
+    if not date_from_str or not date_to_str:
+        return jsonify({"error": "from and to query parameters are required"}), 400
+
+    date_from = parse_event_date(date_from_str)
+    date_to = parse_event_date(date_to_str)
+
+    def load_events(path):
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return []
+
+    all_events = (
+        load_events(internal_events_path) +
+        load_events(google_events_path) +
+        load_events(microsoft_events_path)
+    )
+
+    filtered_events = []
+
+    for event in all_events:
+        # Always use the robust parser
+        try:
+            start = parse_event_date(event["start"])
+            end = parse_event_date(event["end"])
+        except Exception as e:
+            # Skip invalid events instead of crashing
+            print(f"Skipping invalid event {event.get('id')} due to parse error: {e}")
+            continue
+
+        # Overlap check
+        if start <= date_to and end >= date_from:
+            filtered_events.append(event)
+
+    return jsonify(filtered_events)
+
+@app.route('/api/save/event', methods=['POST'])
+def save_event():
+    file_path = os.path.join(EVENTS_DIR, 'internal.json')
+    new_event = request.get_json()
+
+    # Load existing events
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                events = json.load(f)
+                if not isinstance(events, list):
+                    events = []
+        except Exception as exc:
+            print(f"Failed to load existing events: {exc}")
+            events = []
+    else:
+        events = []
+
+    # Append new event
+    events.append(new_event)
+
+    # Save back
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(events, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"Failed to save event: {exc}")
+        return jsonify({'status': 'error', 'message': str(exc)}), 500
+
+    create_state()
+
+    return jsonify({'status': 'saved', 'event': new_event})
+
+@app.route('/api/delete/event', methods=['POST'])
+def delete_event():
     file_path = os.path.join(EVENTS_DIR, 'internal.json')
     data = request.get_json()
-    with open(file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
-    return jsonify({'status': 'saved'})
+    event_id = data.get("id")
+
+    if not event_id:
+        return jsonify({"status": "error", "message": "No id provided"}), 400
+
+    # Load existing events
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                events = json.load(f)
+                if not isinstance(events, list):
+                    events = []
+        except Exception as exc:
+            print(f"Failed to load events for deletion: {exc}")
+            return jsonify({"status": "error", "message": str(exc)}), 500
+    else:
+        events = []
+
+    # Filter out the event with matching id
+    new_events = [ev for ev in events if ev.get("id") != event_id]
+
+    # Save back
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(new_events, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"Failed to save events after deletion: {exc}")
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+    create_state()
+
+    return jsonify({"status": "deleted", "id": event_id})
 
 
 @app.route("/api/integrate", methods=["POST"])
@@ -190,10 +299,64 @@ def save_automations():
     return jsonify({"status": "saved"})
 
 
+def create_state():
+    today = date.today()
+
+    def load_events(path):
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as exc:
+                print(f"Failed to load {path}: {exc}")
+        return []
+
+    paths = [
+        os.path.join(EVENTS_DIR, "internal.json"),
+        os.path.join(EVENTS_DIR, "google.json"),
+        os.path.join(EVENTS_DIR, "microsoft.json"),
+    ]
+
+    all_events = []
+    for p in paths:
+        all_events.extend(load_events(p))
+
+    todays_events = []
+    for event in all_events:
+        try:
+            start = parse_event_date(event.get("start")) if event.get("start") else None
+            end = parse_event_date(event.get("end")) if event.get("end") else start
+        except Exception as exc:
+            print(f"Skipping invalid event {event.get('id')}: {exc}")
+            continue
+
+        if start and end and start <= today <= end:
+            # Map to {time, event} format for your frontend
+            time_str = event.get("start", "00:00")
+            if "T" in time_str:
+                time_str = time_str.split("T")[1][:5] # get HH:MM
+            else:
+                time_str = "00:00"
+            todays_events.append({
+                "time": time_str,
+                "event": event.get("name", "Unnamed Event")
+            })
+
+    state = {"events": todays_events}
+
+    try:
+        with open("state.json", "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"Failed to write `state.json`: {exc}")
+
+
+
 if __name__ == '__main__':
     os.makedirs(MODULES_DIR, exist_ok=True)
     os.makedirs(EVENTS_DIR, exist_ok=True)
     os.makedirs(CONFIG_DIR, exist_ok=True)
     os.makedirs(LAYOUT_DIR, exist_ok=True)
     os.makedirs(AUTOMATIONS_DIR, exist_ok=True)
+    create_state()
     app.run(debug=True, host='0.0.0.0')

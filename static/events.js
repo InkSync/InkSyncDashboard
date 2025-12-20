@@ -1,14 +1,15 @@
-// --- Events ---
-let events = [];
+// --- Calendar state (minimal, sane) ---
 let calendar;
+let currentEvents = [];
 
+// --- Init ---
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("calendar")) {
         initEventsPage();
-        fetchEventsFromServer();
     }
 });
 
+// --- FullCalendar init ---
 function initEventsPage() {
     const calendarEl = document.getElementById("calendar");
 
@@ -16,25 +17,31 @@ function initEventsPage() {
         initialView: "dayGridMonth",
         selectable: true,
         editable: false,
-        locale: 'en-us',
+        locale: "en-us",
         height: "100%",
+
         headerToolbar: {
             left: "prev,next today",
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
-        events: events,
+
+        // Server-side event loading
+        events: fetchEventsForCalendar,
+
         eventTimeFormat: {
-            hour: '2-digit',
-            minute: '2-digit',
+            hour: "2-digit",
+            minute: "2-digit",
             hour12: false
         },
+
         dateClick(info) {
             openAddEventPopup(info.dateStr);
         },
+
         eventClick(info) {
             if (confirm(`Delete event "${info.event.title}"?`)) {
-                removeEvent(info.event.extendedProps.id);
+                deleteEvent(info.event.extendedProps.id);
             }
         }
     });
@@ -43,27 +50,43 @@ function initEventsPage() {
     document.querySelector(".add-event-btn").onclick = () => openAddEventPopup();
 }
 
-// --- fetch events from Flask ---
-function fetchEventsFromServer() {
-    fetch("/api/events")
+// --- Fetch events based on visible range ---
+function fetchEventsForCalendar(info, successCallback, failureCallback) {
+    fetch(`/api/events?from=${info.start.toISOString()}&to=${info.end.toISOString()}`)
         .then(res => res.json())
         .then(data => {
-            if (Array.isArray(data)) {
-                events = data;
-                renderEventList();
-                renderCalendarEvents();
-            } else {
-                console.error("Unexpected response from server:", data);
+            if (!Array.isArray(data)) {
+                throw new Error("Invalid event data");
             }
+
+            currentEvents = data;
+            renderEventList();
+
+            successCallback(
+                data.map(ev => ({
+                    title: ev.name,
+                    start: ev.start,
+                    end: ev.end,
+                    allDay: ev.allDay,
+                    extendedProps: {
+                        id: ev.id,
+                        location: ev.location
+                    }
+                }))
+            );
         })
-        .catch(err => console.error("Error fetching events:", err));
+        .catch(err => {
+            console.error("Error fetching events:", err);
+            failureCallback(err);
+        });
 }
 
-// --- render list of events ---
+// --- Render table ---
 function renderEventList() {
     const tbody = document.querySelector("#events-table tbody");
     tbody.innerHTML = "";
-    events.forEach(event => {
+
+    currentEvents.forEach(event => {
         const tr = document.createElement("tr");
 
         const startStr = event.allDay
@@ -81,69 +104,65 @@ function renderEventList() {
             <td>${endStr}</td>
             <td>${event.allDay ? "Yes" : "No"}</td>
             <td>
-                <button onclick="removeEvent('${event.id}')">Delete</button>
+                <button onclick="deleteEvent('${event.id}')">Delete</button>
             </td>
         `;
+
         tbody.appendChild(tr);
     });
-    renderCalendarEvents();
 }
 
-function renderCalendarEvents() {
-    if (!calendar) return;
-    calendar.removeAllEvents();
-    events.forEach(ev => {
-        calendar.addEvent({
-            title: ev.name,
-            start: ev.start,
-            end: ev.end,
-            allDay: ev.allDay,
-            extendedProps: {id: ev.id, location: ev.location}
-        });
-    });
-}
-
-// --- remove event ---
-function removeEvent(id) {
-    events = events.filter(e => e.id !== id);
-    renderEventList();
-
-    fetch("/api/save/events", {
+// --- Delete event ---
+function deleteEvent(id) {
+    fetch("/api/delete/event", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(events)
-    }).catch(err => console.error("Error saving events after delete:", err));
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+    })
+    .then(() => calendar.refetchEvents())
+    .catch(err => console.error("Error deleting event:", err));
 }
 
-// --- format date time ---
+// --- Date formatting ---
 function formatDateTime(dt) {
-    const d = new Date(dt);
-    return d.toLocaleString();
+    return new Date(dt).toLocaleString();
 }
 
-// --- popup to add new event ---
+// --- Add event popup ---
 function openAddEventPopup(defaultDate = "") {
     const popup = document.createElement("div");
     popup.classList.add("popup");
+
     popup.innerHTML = `
         <div class="popup-content">
             <h3>Add Event</h3>
-            <label>Name: <input type="text" id="event-name"></label>
-            <label>Location: <input type="text" id="event-location"></label>
-            <label>All Day: <input type="checkbox" id="event-allday"></label>
+
+            <label>Name:
+                <input type="text" id="event-name">
+            </label>
+
+            <label>Location:
+                <input type="text" id="event-location">
+            </label>
+
+            <label>
+                All Day:
+                <input type="checkbox" id="event-allday">
+            </label>
+
             <label>Start:
                 <div>
                     <input type="time" id="event-start-time">
                     <input type="date" id="event-start-date" value="${defaultDate}">
                 </div>
             </label>
+
             <label>End:
                 <div>
                     <input type="time" id="event-end-time">
                     <input type="date" id="event-end-date" value="${defaultDate}">
                 </div>
             </label>
-            
 
             <div class="popup-actions">
                 <button id="save-event-btn">Save</button>
@@ -151,6 +170,7 @@ function openAddEventPopup(defaultDate = "") {
             </div>
         </div>
     `;
+
     document.body.appendChild(popup);
 
     const startTimeInput = document.getElementById("event-start-time");
@@ -158,57 +178,52 @@ function openAddEventPopup(defaultDate = "") {
     const allDayCheckbox = document.getElementById("event-allday");
 
     allDayCheckbox.addEventListener("change", () => {
-        if (allDayCheckbox.checked) {
-            startTimeInput.style.display = "none";
-            endTimeInput.style.display = "none";
-        } else {
-            startTimeInput.style.display = "inline-block";
-            endTimeInput.style.display = "inline-block";
-        }
+        const display = allDayCheckbox.checked ? "none" : "inline-block";
+        startTimeInput.style.display = display;
+        endTimeInput.style.display = display;
     });
 
     document.getElementById("cancel-event-btn").onclick = () => popup.remove();
 
     document.getElementById("save-event-btn").onclick = () => {
-            const name = document.getElementById("event-name").value.trim();
-            const location = document.getElementById("event-location").value.trim();
-            const startDate = document.getElementById("event-start-date").value;
-            const endDate = document.getElementById("event-end-date").value;
-            const startTime = startTimeInput.value;
-            const endTime = endTimeInput.value;
-            const allDay = allDayCheckbox.checked;
+        const name = document.getElementById("event-name").value.trim();
+        const location = document.getElementById("event-location").value.trim();
+        const startDate = document.getElementById("event-start-date").value;
+        const endDate = document.getElementById("event-end-date").value;
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+        const allDay = allDayCheckbox.checked;
 
-            if (!name || !location || !startDate || !endDate || (!allDay && (!startTime || !endTime))) {
-                alert("Please fill all fields.");
-                return;
-            }
+        if (!name || !location || !startDate || !endDate || (!allDay && (!startTime || !endTime))) {
+            alert("Please fill all fields.");
+            return;
+        }
 
-            const start = allDay ? startDate : `${startDate}T${startTime}`;
-            const end = allDay ? endDate : `${endDate}T${endTime}`;
+        const start = allDay ? startDate : `${startDate}T${startTime}`;
+        const end = allDay ? endDate : `${endDate}T${endTime}`;
 
-            if (!allDay && new Date(start) > new Date(end)) {
-                alert("Start date/time cannot be after end date/time.");
-                return;
-            }
+        if (!allDay && new Date(start) > new Date(end)) {
+            alert("Start cannot be after end.");
+            return;
+        }
 
-            const newEvent = {
-                id: crypto.randomUUID(),
-                name,
-                location,
-                start,
-                end,
-                allDay
-            };
-
-            events.push(newEvent);
-            renderEventList();
-
-            fetch("/api/save/events", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(events)
-            }).catch(err => console.error("Error saving events:", err));
-
-            popup.remove();
+        const newEvent = {
+            id: crypto.randomUUID(),
+            name,
+            location,
+            start,
+            end,
+            allDay
         };
+
+        fetch("/api/save/event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newEvent)
+        })
+        .then(() => calendar.refetchEvents())
+        .catch(err => console.error("Error saving event:", err));
+
+        popup.remove();
+    };
 }
