@@ -5,7 +5,7 @@
 
     <main class="automation-wrapper">
         <div class="automation-toolbar">
-            <button id="create-automation-btn" class="btn-primary">+ Nowa automacja</button>
+            <button id="create-automation-btn" class="btn-primary">+ New automation</button>
             <span id="automation-count"></span>
         </div>
         <div id="automation-list">
@@ -24,27 +24,27 @@
         <div class="editor-area">
             <!-- NOWE: edycja tytułu automacji -->
             <div class="automation-name-row">
-                <label for="automation-name-input">Tytuł automacji</label>
-                <input type="text" id="automation-name-input" maxlength="60" placeholder="Wpisz nazwę">
+                <label for="automation-name-input">Automation title</label>
+                <input type="text" id="automation-name-input" maxlength="60" placeholder="Input automation title here">
             </div>
-            <h3>Bloki</h3>
+            <h3>Blocks</h3>
             <div id="editor-blocks"><!-- dynamic --></div>
 
             <div class="block-adder">
                 <select id="block-type-select">
-                    <option value="" disabled selected>Wybierz typ bloku</option>
+                    <option value="" disabled selected>Select the block type</option>
                     <option value="Send a key">Send a key</option>
                     <option value="Send a command">Send a command</option>
                     <option value="Timeout">Timeout</option>
                     <option value="Key pressed">Key pressed</option>
                 </select>
-                <button id="add-block-btn">+ Dodaj blok</button>
+                <button id="add-block-btn">+ Add</button>
             </div>
 
             <div class="editor-actions">
-                <button id="delete-automation-btn" class="btn-danger">Usuń automację</button>
-                <button id="save-automation-btn" class="btn-primary">Zapisz</button>
-                <button id="cancel-automation-btn" class="btn-secondary">Anuluj</button>
+                <button id="delete-automation-btn" class="btn-danger">Delete</button>
+                <button id="save-automation-btn" class="btn-primary">Save</button>
+                <button id="cancel-automation-btn" class="btn-secondary">Cancel</button>
             </div>
         </div>
     </div>

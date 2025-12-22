@@ -135,7 +135,7 @@ function openAddEventPopup(defaultDate = "") {
 
     popup.innerHTML = `
         <div class="popup-content">
-            <h3>Add Event</h3>
+            <h3>Add an Event</h3>
 
             <label>Name:
                 <input type="text" id="event-name">

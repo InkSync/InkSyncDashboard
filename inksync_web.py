@@ -17,7 +17,6 @@ AUTOMATIONS_DIR = 'automations'  # <-- katalog na automacje
 
 integration_status = {
     "microsoft": False,
-    "apple": False,
     "google": False
 }
 

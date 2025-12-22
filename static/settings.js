@@ -1,6 +1,6 @@
 // --- SETTINGS PAGE ---
 async function refreshIndicators() {
-    const services = ["microsoft", "apple", "google"];
+    const services = ["microsoft", "google"];
 
     for (const s of services) {
         const res = await fetch(`/api/integration-status/${s}`);

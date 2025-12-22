@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
             card.addEventListener("click", () => openEditor(auto.id));
             listEl.appendChild(card);
         });
-        countEl.textContent = `Automacje: ${automations.length}`;
+        countEl.textContent = `Automations: ${automations.length}`;
     }
 
     function makeFlowItem(txt) {
@@ -152,22 +152,14 @@ document.addEventListener("DOMContentLoaded", () => {
         header.className = "block-header";
         header.innerHTML = `<span>${block.type}</span>`;
 
-        // Delete button (nie dla Start/End)
-        if (block.type !== "Start" && block.type !== "End") {
-            const del = document.createElement("button");
-            del.className = "block-delete";
-            del.textContent = "Usuń";
-            del.addEventListener("click", () => {
-                currentAutomation.blocks = currentAutomation.blocks.filter(b => b.id !== block.id);
-                renderBlockEditor();
-            });
-            header.appendChild(del);
-        } else {
-            const note = document.createElement("span");
-            note.className = "block-note";
-            note.textContent = block.type === "Start" ? "(początek)" : "(koniec)";
-            header.appendChild(note);
-        }
+        const del = document.createElement("button");
+        del.className = "block-delete";
+        del.textContent = "Delete";
+        del.addEventListener("click", () => {
+            currentAutomation.blocks = currentAutomation.blocks.filter(b => b.id !== block.id);
+            renderBlockEditor();
+        });
+        header.appendChild(del);
 
         wrapper.appendChild(header);
 
@@ -178,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "Send a key": {
                 const input = document.createElement("input");
                 input.type = "text";
-                input.placeholder = "np. KEY1 / ENTER";
+                input.placeholder = "for ex. KEY1 / ENTER";
                 input.value = block.config?.key || "";
                 input.addEventListener("input", () => block.config.key = input.value.trim());
                 cfgDiv.appendChild(input);
@@ -187,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "Send a command": {
                 const input = document.createElement("input");
                 input.type = "text";
-                input.placeholder = "Komenda (np. poweroff)";
+                input.placeholder = "Command (for ex. poweroff)";
                 input.value = block.config?.command || "";
                 input.addEventListener("input", () => block.config.command = input.value);
                 cfgDiv.appendChild(input);
@@ -197,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const input = document.createElement("input");
                 input.type = "number";
                 input.min = "0";
-                input.placeholder = "Sekundy";
+                input.placeholder = "Seconds";
                 input.value = block.config?.seconds ?? "";
                 input.addEventListener("input", () => block.config.seconds = parseInt(input.value || "0", 10));
                 cfgDiv.appendChild(input);
