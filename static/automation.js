@@ -227,8 +227,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return wrapper;
     }
 
+    function uuidv4_time() {
+        let t = Date.now()
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = (t + Math.random() * 16) % 16 | 0
+            t = Math.floor(t / 16)
+            const v = c === 'x' ? r : (r & 0x3 | 0x8)
+            return v.toString(16)
+        })
+    }
+
+
     function createAutomation() {
-        const id = crypto.randomUUID();
+        const id = uuidv4_time();
         const auto = {
             id,
             name: `Automation ${automations.length + 1}`,
@@ -256,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function buildBlock(type) {
-        const base = { id: crypto.randomUUID(), type, config: {} };
+        const base = { id: uuidv4_time(), type, config: {} };
         switch (type) {
             case "Send a key": base.config = { key: "" }; break;
             case "Send a command": base.config = { command: "" }; break;
