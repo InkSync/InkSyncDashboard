@@ -223,81 +223,6 @@ def delete_event():
     return jsonify({"status": "deleted", "id": event_id})
 
 
-@app.route("/api/integrate", methods=["POST"])
-def set_integration():
-    data = request.get_json()
-    service = data.get("service")
-
-    if service not in integration_status:
-        return jsonify({"error": "Unknown service"}), 400
-
-    integration_status[service] = True
-    return jsonify({"status": "OK"})
-
-
-@app.route("/api/integration-status/<service>", methods=["GET"])
-def get_integration_status(service):
-    if service not in integration_status:
-        return jsonify({"error": "Unknown service"}), 400
-
-    return jsonify({
-        "service": service,
-        "integrated": integration_status[service]
-    })
-
-@app.route('/api/layout', methods=['GET'])
-def get_layout():
-    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
-    if not os.path.exists(file_path):
-        return jsonify({"elements": []})
-    with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    return jsonify(data)
-
-@app.route('/api/layout', methods=['POST'])
-def save_layout():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No JSON payload"}), 400
-
-    os.makedirs(LAYOUT_DIR, exist_ok=True)
-    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
-    try:
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2)
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
-
-    return jsonify({"status": "saved", "path": file_path})
-
-
-@app.get("/api/automations")
-def get_automations():
-    os.makedirs(AUTOMATIONS_DIR, exist_ok=True)
-    file_path = os.path.join(AUTOMATIONS_DIR, "automations.json")
-    if not os.path.exists(file_path):
-        return jsonify([])
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return jsonify(json.load(f))
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
-
-@app.post("/api/automations/save")
-def save_automations():
-    data = request.get_json()
-    if not isinstance(data, list):
-        return jsonify({"error": "Payload must be a list"}), 400
-    os.makedirs(AUTOMATIONS_DIR, exist_ok=True)
-    file_path = os.path.join(AUTOMATIONS_DIR, "automations.json")
-    try:
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
-    return jsonify({"status": "saved"})
-
-
 def create_state():
     today = date.today()
 
@@ -348,6 +273,81 @@ def create_state():
             json.dump(state, f, indent=2, ensure_ascii=False)
     except Exception as exc:
         print(f"Failed to write `state.json`: {exc}")
+
+
+@app.route("/api/integrate", methods=["POST"])
+def set_integration():
+    data = request.get_json()
+    service = data.get("service")
+
+    if service not in integration_status:
+        return jsonify({"error": "Unknown service"}), 400
+
+    integration_status[service] = True
+    return jsonify({"status": "OK"})
+
+@app.route("/api/integration-status/<service>", methods=["GET"])
+def get_integration_status(service):
+    if service not in integration_status:
+        return jsonify({"error": "Unknown service"}), 400
+
+    return jsonify({
+        "service": service,
+        "integrated": integration_status[service]
+    })
+
+@app.route('/api/layout', methods=['GET'])
+def get_layout():
+    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
+    if not os.path.exists(file_path):
+        return jsonify({"elements": []})
+    with open(file_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    return jsonify(data)
+
+
+@app.route('/api/layout', methods=['POST'])
+def save_layout():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No JSON payload"}), 400
+
+    os.makedirs(LAYOUT_DIR, exist_ok=True)
+    file_path = os.path.join(LAYOUT_DIR, 'layout.json')
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    return jsonify({"status": "saved", "path": file_path})
+
+@app.get("/api/automations")
+def get_automations():
+    os.makedirs(AUTOMATIONS_DIR, exist_ok=True)
+    file_path = os.path.join(AUTOMATIONS_DIR, "automations.json")
+    if not os.path.exists(file_path):
+        return jsonify([])
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return jsonify(json.load(f))
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.post("/api/automations/save")
+def save_automations():
+    data = request.get_json()
+    if not isinstance(data, list):
+        return jsonify({"error": "Payload must be a list"}), 400
+    os.makedirs(AUTOMATIONS_DIR, exist_ok=True)
+    file_path = os.path.join(AUTOMATIONS_DIR, "automations.json")
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+    return jsonify({"status": "saved"})
 
 
 

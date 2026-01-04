@@ -109,6 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "Send a command": return `Cmd "${truncate(block.config?.command || "", 14)}"`;
             case "Timeout": return `Timeout ${block.config?.seconds || 0}s`;
             case "Key pressed": return `Key pressed ${block.config?.key || "?"}`;
+            case "Web request": return `Web request ${truncate(block.config?.url || "", 24) || "?"}`;
             case "Start":
             case "End":
             default: return block.type;
@@ -208,7 +209,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 cfgDiv.appendChild(select);
                 break;
             }
-            // Start / End no config
+            case "Web request": {
+                const input = document.createElement("input");
+                input.type = "url";
+                input.placeholder = "URL (np. https://example.com/hook)";
+                input.value = block.config?.url || "";
+                input.addEventListener("input", () => {
+                    if (!block.config) block.config = {};
+                    block.config.url = input.value.trim();
+                });
+                cfgDiv.appendChild(input);
+                break;
+            }
         }
 
         wrapper.appendChild(cfgDiv);
@@ -221,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
             id,
             name: `Automation ${automations.length + 1}`,
             enabled: true,
-            blocks: [] // No start and end blocks initially
+            blocks: []
         };
 
         automations.push(auto);
@@ -236,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const type = blockTypeSelect.value;
         if (!type) return;
 
-        // Add new block after any existing blocks but before Start/End if they exist
         const insertionIndex = currentAutomation.blocks.length > 0 ? currentAutomation.blocks.length : 0;
         const newBlock = buildBlock(type);
         currentAutomation.blocks.splice(insertionIndex, 0, newBlock);
@@ -251,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
             case "Send a command": base.config = { command: "" }; break;
             case "Timeout": base.config = { seconds: 0 }; break;
             case "Key pressed": base.config = { key: "KEY0" }; break;
+            case "Web request": base.config = { url: "" }; break;
         }
         return base;
     }
