@@ -128,6 +128,16 @@ function formatDateTime(dt) {
     return new Date(dt).toLocaleString();
 }
 
+function uuidv4_time() {
+        let t = Date.now()
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = (t + Math.random() * 16) % 16 | 0
+            t = Math.floor(t / 16)
+            const v = c === 'x' ? r : (r & 0x3 | 0x8)
+            return v.toString(16)
+        })
+    }
+
 // --- Add event popup ---
 function openAddEventPopup(defaultDate = "") {
     const popup = document.createElement("div");
@@ -208,7 +218,7 @@ function openAddEventPopup(defaultDate = "") {
         }
 
         const newEvent = {
-            id: crypto.randomUUID(),
+            id: uuidv4_time(),
             name,
             location,
             start,
