@@ -1297,3 +1297,225 @@ nav {
     font-size: 14px;
     border-left: 4px solid #444;
 }
+
+/* --- Auth pages (Google/Microsoft) --- */
+.auth-page {
+    background: #f9f9fb;
+    color: #222;
+}
+
+.auth-wrap {
+    max-width: 860px;
+    margin: 40px auto;
+    padding: 0 16px;
+    font-family: "JetBrains Mono", monospace;
+}
+
+.auth-card {
+    background: #fff;
+    border: 1px solid #e6e6ea;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    padding: 18px 18px;
+}
+
+.auth-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    color: #555;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.auth-subtitle code {
+    background: #f4f4f6;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.auth-section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 16px 0 10px;
+}
+
+.auth-kv p {
+    margin: 8px 0;
+}
+
+.auth-kv code {
+    background: #f4f4f6;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.auth-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0 0;
+}
+
+.auth-btn {
+    padding: 10px 14px;
+    border: 1px solid #cfcfd6;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, transform .02s ease;
+    font-family: inherit;
+}
+
+.auth-btn:hover {
+    background: #f4f4f6;
+    border-color: #b9b9c3;
+}
+
+.auth-btn:active {
+    transform: translateY(1px);
+}
+
+.auth-btn.primary {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+}
+
+.auth-btn.primary:hover {
+    background: #000;
+    border-color: #000;
+}
+
+/* Small auth button (e.g., copy code) */
+.auth-btn.auth-btn--small {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    margin-left: 10px;
+}
+
+.auth-result {
+    margin-top: 12px;
+}
+
+.auth-pre {
+    margin-top: 8px;
+    background: #0f1115;
+    color: #e8e8ea;
+    border-radius: 12px;
+    padding: 14px;
+    overflow: auto;
+    border: 1px solid #1f232b;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+
+.auth-link {
+    word-break: break-all;
+}
+
+.auth-muted {
+    color: #666;
+}
+
+.auth-ok {
+    color: #0a7a2f;
+    font-weight: 600;
+}
+
+.auth-err {
+    color: #b00020;
+    font-weight: 600;
+}
+
+/* Auth back navigation (top-left) */
+.auth-back {
+    margin-bottom: 10px;
+}
+
+.auth-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #e2e2e8;
+    background: #f4f4f6;
+    color: #111;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-back-link:hover {
+    background: #ededf2;
+    border-color: #cfcfd6;
+}
+
+.auth-back-link:focus {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+}
+
+/* --- Auth toast (JSON output) --- */
+.auth-toast {
+    position: fixed;
+    left: 18px;
+    bottom: 18px;
+    width: min(560px, calc(100vw - 36px));
+    max-height: min(55vh, 420px);
+    overflow: hidden;
+    background: #0f1115;
+    color: #e8e8ea;
+    border: 1px solid #1f232b;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    z-index: 10000;
+}
+
+.auth-toast--hidden {
+    display: none;
+}
+
+.auth-toast__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid #1f232b;
+    background: rgba(255,255,255,0.03);
+}
+
+.auth-toast__title {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.auth-toast__close {
+    border: 1px solid #2b303a;
+    background: transparent;
+    color: #e8e8ea;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    line-height: 28px;
+    font-size: 18px;
+}
+
+.auth-toast__close:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+.auth-toast__body {
+    padding: 12px;
+    margin: 0;
+    overflow: auto;
+    max-height: calc(min(55vh, 420px) - 52px);
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
