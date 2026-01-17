@@ -429,14 +429,28 @@ if Credentials:
             return jsonify({"error": "Authenticate first"}), 400
 
         service = build("calendar", "v3", credentials=google_creds)
+
         events = []
-        for cal in service.calendarList().list().execute().get("items", []):
-            events.extend(
-                service.events()
-                .list(calendarId=cal["id"], singleEvents=True, orderBy="startTime")
-                .execute()
-                .get("items", [])
-            )
+        calendars = service.calendarList().list().execute().get("items", [])
+        for cal in calendars:
+            page_token = None
+            while True:
+                resp = (
+                    service.events()
+                    .list(
+                        calendarId=cal["id"],
+                        singleEvents=True,
+                        orderBy="startTime",
+                        pageToken=page_token,
+                        maxResults=2500,
+                        showDeleted=False,
+                    )
+                    .execute()
+                )
+                events.extend(resp.get("items", []))
+                page_token = resp.get("nextPageToken")
+                if not page_token:
+                    break
 
         simple_events = [{
             "id": e.get("id"),
@@ -519,13 +533,36 @@ def api_ms_events():
     token = sess.get("access_token")
     if not token:
         return jsonify({"error": "Authenticate first"}), 401
+
     headers = {"Authorization": f"Bearer {token}"}
-    resp = requests.get("https://graph.microsoft.com/v1.0/me/events", headers=headers).json()
-    simple_events = [{"id": e.get("id"), "name": e.get("subject"), "start": e.get("start", {}).get("dateTime"),
-                      "end": e.get("end", {}).get("dateTime")} for e in resp.get("value", [])]
+
+    all_items = []
+    url = "https://graph.microsoft.com/v1.0/me/events"
+    params = {"$top": "1000"}  # Graph caps per page; nextLink will paginate
+    while True:
+        resp = requests.get(url, headers=headers, params=params, timeout=30)
+        data = resp.json()
+        if resp.status_code >= 400:
+            return jsonify({"error": data, "status_code": resp.status_code}), resp.status_code
+
+        all_items.extend(data.get("value", []))
+        next_link = data.get("@odata.nextLink")
+        if not next_link:
+            break
+        url = next_link
+        params = None  # nextLink already contains query params
+
+    simple_events = [{
+        "id": e.get("id"),
+        "name": e.get("subject"),
+        "start": (e.get("start") or {}).get("dateTime"),
+        "end": (e.get("end") or {}).get("dateTime"),
+    } for e in all_items]
+
     filename = os.path.join(EVENTS_DIR, "microsoft.json")
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(simple_events, f, indent=2, ensure_ascii=False)
+
     create_state()
     return jsonify(simple_events)
 
