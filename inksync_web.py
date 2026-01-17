@@ -119,7 +119,14 @@ def get_events():
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        # Strip unsupported fields (backward compatibility)
+                        for ev in data:
+                            if isinstance(ev, dict):
+                                ev.pop("location", None)
+                        return data
+                    return []
             except Exception as exc:
                 print(f"Failed to load {path}: {exc}")
         return []
@@ -142,6 +149,11 @@ def get_events():
 def save_event():
     file_path = os.path.join(EVENTS_DIR, 'internal.json')
     new_event = request.get_json()
+
+    # Drop location (do not persist it)
+    if isinstance(new_event, dict):
+        new_event.pop("location", None)
+
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -195,7 +207,12 @@ def create_state():
     for p in paths:
         if os.path.exists(p):
             try:
-                all_events.extend(json.load(open(p, "r", encoding="utf-8")))
+                events = json.load(open(p, "r", encoding="utf-8"))
+                if isinstance(events, list):
+                    for ev in events:
+                        if isinstance(ev, dict):
+                            ev.pop("location", None)
+                    all_events.extend(events)
             except Exception as exc:
                 print(f"Failed to load {p}: {exc}")
 

@@ -69,8 +69,7 @@ function fetchEventsForCalendar(info, successCallback, failureCallback) {
                     end: ev.end,
                     allDay: ev.allDay,
                     extendedProps: {
-                        id: ev.id,
-                        location: ev.location
+                        id: ev.id
                     }
                 }))
             );
@@ -99,7 +98,6 @@ function renderEventList() {
 
         tr.innerHTML = `
             <td>${event.name}</td>
-            <td>${event.location}</td>
             <td>${startStr}</td>
             <td>${endStr}</td>
             <td>${event.allDay ? "Yes" : "No"}</td>
@@ -151,10 +149,6 @@ function openAddEventPopup(defaultDate = "") {
                 <input type="text" id="event-name">
             </label>
 
-            <label>Location:
-                <input type="text" id="event-location">
-            </label>
-
             <label>
                 All Day:
                 <input type="checkbox" id="event-allday">
@@ -197,14 +191,13 @@ function openAddEventPopup(defaultDate = "") {
 
     document.getElementById("save-event-btn").onclick = () => {
         const name = document.getElementById("event-name").value.trim();
-        const location = document.getElementById("event-location").value.trim();
         const startDate = document.getElementById("event-start-date").value;
         const endDate = document.getElementById("event-end-date").value;
         const startTime = startTimeInput.value;
         const endTime = endTimeInput.value;
         const allDay = allDayCheckbox.checked;
 
-        if (!name || !location || !startDate || !endDate || (!allDay && (!startTime || !endTime))) {
+        if (!name || !startDate || !endDate || (!allDay && (!startTime || !endTime))) {
             alert("Please fill all fields.");
             return;
         }
@@ -220,7 +213,6 @@ function openAddEventPopup(defaultDate = "") {
         const newEvent = {
             id: uuidv4_time(),
             name,
-            location,
             start,
             end,
             allDay
