@@ -1462,7 +1462,9 @@ nav {
 /* --- Auth toast (JSON output) --- */
 .auth-toast {
     position: fixed;
-    left: 18px;
+    /* moved from left to right */
+    left: auto;
+    right: 18px;
     bottom: 18px;
     width: min(560px, calc(100vw - 36px));
     max-height: min(55vh, 420px);

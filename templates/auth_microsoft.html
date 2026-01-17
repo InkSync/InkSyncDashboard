@@ -1,200 +1,198 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Microsoft Auth</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="auth-page">
-<div class="auth-wrap">
-    <div class="auth-card">
-        <div class="auth-back">
-            <a class="auth-back-link" href="/settings" aria-label="Back to Settings">← Back to Settings</a>
+{% include 'header.html' with context %}
+<div class="container">
+    {% include 'sidebar.html' with context %}
+
+    <main class="content auth-page">
+        <div class="auth-wrap">
+            <div class="auth-card">
+                <div class="auth-back">
+                    <a class="auth-back-link" href="/settings" aria-label="Back to Settings">← Back to Settings</a>
+                </div>
+
+                <div class="auth-title">Sign in with Microsoft</div>
+                <p class="auth-subtitle">
+                    This page calls <code>/api/auth_microsoft/login</code>, shows the verification URL and code, then lets you click <code>/api/auth_microsoft/poll</code>.
+                </p>
+
+                <div class="auth-section-title">Status</div>
+                <div id="step1" class="auth-kv">
+                    <p>
+                        Verification URL:
+                        <span id="verification" class="auth-link"></span>
+                    </p>
+                    <p>
+                        User code:
+                        <code id="usercode">...</code>
+                        <button class="auth-btn auth-btn--small" id="btnCopyCode" type="button">Copy code</button>
+                    </p>
+                    <p class="auth-muted" id="expires"></p>
+                </div>
+
+                <div class="auth-actions">
+                    <button class="auth-btn primary" id="btnPoll">Continue (poll)</button>
+                    <button class="auth-btn" id="btnLogout">Sign out</button>
+                    <button class="auth-btn" id="btnEvents">Fetch events</button>
+                </div>
+            </div>
         </div>
 
-        <div class="auth-title">Sign in with Microsoft</div>
-        <p class="auth-subtitle">
-            This page calls <code>/api/auth_microsoft/login</code>, shows the verification URL and code, then lets you click <code>/api/auth_microsoft/poll</code>.
-        </p>
-
-        <div class="auth-section-title">Status</div>
-        <div id="step1" class="auth-kv">
-            <p>
-                Verification URL:
-                <span id="verification" class="auth-link"></span>
-            </p>
-            <p>
-                User code:
-                <code id="usercode">...</code>
-                <button class="auth-btn auth-btn--small" id="btnCopyCode" type="button">Copy code</button>
-            </p>
-            <p class="auth-muted" id="expires"></p>
+        <!-- Toast/popup for JSON output -->
+        <div id="authToast" class="auth-toast auth-toast--hidden" role="status" aria-live="polite" aria-atomic="true">
+            <div class="auth-toast__header">
+                <div class="auth-toast__title">Status</div>
+                <button id="authToastClose" class="auth-toast__close" type="button" aria-label="Close">×</button>
+            </div>
+            <pre id="authToastBody" class="auth-toast__body"></pre>
         </div>
 
-        <div class="auth-actions">
-            <button class="auth-btn primary" id="btnPoll">Continue (poll)</button>
-            <button class="auth-btn" id="btnLogout">Sign out</button>
-            <button class="auth-btn" id="btnEvents">Fetch events</button>
-        </div>
-    </div>
-</div>
+        <script>
+            const verification = document.getElementById("verification");
+            const usercode = document.getElementById("usercode");
+            const expires = document.getElementById("expires");
+            const btnPoll = document.getElementById("btnPoll");
+            const btnLogout = document.getElementById("btnLogout");
+            const btnEvents = document.getElementById("btnEvents");
+            const btnCopyCode = document.getElementById("btnCopyCode");
 
-<!-- Toast/popup for JSON output -->
-<div id="authToast" class="auth-toast auth-toast--hidden" role="status" aria-live="polite" aria-atomic="true">
-    <div class="auth-toast__header">
-        <div class="auth-toast__title">Status</div>
-        <button id="authToastClose" class="auth-toast__close" type="button" aria-label="Close">×</button>
-    </div>
-    <pre id="authToastBody" class="auth-toast__body"></pre>
-</div>
+            const authToast = document.getElementById("authToast");
+            const authToastBody = document.getElementById("authToastBody");
+            const authToastClose = document.getElementById("authToastClose");
+            let authToastTimer = null;
 
-<script>
-    const verification = document.getElementById("verification");
-    const usercode = document.getElementById("usercode");
-    const expires = document.getElementById("expires");
-    const btnPoll = document.getElementById("btnPoll");
-    const btnLogout = document.getElementById("btnLogout");
-    const btnEvents = document.getElementById("btnEvents");
-    const btnCopyCode = document.getElementById("btnCopyCode");
+            function show(obj) {
+                const text = (typeof obj === "string") ? obj : JSON.stringify(obj, null, 2);
+                if (authToastBody) authToastBody.textContent = text;
+                if (authToast) {
+                    authToast.classList.remove("auth-toast--hidden");
+                    if (authToastTimer) clearTimeout(authToastTimer);
+                    authToastTimer = setTimeout(() => {
+                        authToast.classList.add("auth-toast--hidden");
+                    }, 4500);
+                }
+            }
 
-    const authToast = document.getElementById("authToast");
-    const authToastBody = document.getElementById("authToastBody");
-    const authToastClose = document.getElementById("authToastClose");
-    let authToastTimer = null;
+            if (authToastClose) {
+                authToastClose.addEventListener("click", () => {
+                    if (authToastTimer) clearTimeout(authToastTimer);
+                    authToast.classList.add("auth-toast--hidden");
+                });
+            }
 
-    function show(obj) {
-        const text = (typeof obj === "string") ? obj : JSON.stringify(obj, null, 2);
-        if (authToastBody) authToastBody.textContent = text;
-        if (authToast) {
-            authToast.classList.remove("auth-toast--hidden");
-            if (authToastTimer) clearTimeout(authToastTimer);
-            authToastTimer = setTimeout(() => {
-                authToast.classList.add("auth-toast--hidden");
-            }, 4500);
-        }
-    }
-
-    if (authToastClose) {
-        authToastClose.addEventListener("click", () => {
-            if (authToastTimer) clearTimeout(authToastTimer);
-            authToast.classList.add("auth-toast--hidden");
-        });
-    }
-
-    // Start with logged-in actions hidden until we know auth state
-    if (btnLogout) btnLogout.style.display = "none";
-    if (btnEvents) btnEvents.style.display = "none";
-    if (btnCopyCode) btnCopyCode.style.display = "none";
-
-    async function copyUserCode() {
-        const code = (usercode?.textContent || "").trim();
-        if (!code || code === "..." || code === "-") return;
-
-        try {
-            await navigator.clipboard.writeText(code);
-            show({ status: "copied", code_length: code.length });
-        } catch {
-            const ta = document.createElement("textarea");
-            ta.value = code;
-            ta.style.position = "fixed";
-            ta.style.left = "-9999px";
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand("copy");
-            document.body.removeChild(ta);
-            show({ status: "copied_fallback", code_length: code.length });
-        }
-    }
-
-    async function startLogin() {
-        show("Calling /api/auth_microsoft/login…");
-        const r = await fetch("/api/auth_microsoft/login");
-        const j = await r.json();
-
-        if (j.status === "already_authenticated") {
-            verification.innerHTML = "<span class='ok'>Already signed in.</span>";
-            usercode.textContent = "-";
-            expires.textContent = "";
-
-            // Signed in: hide poll, show logout + fetch, hide copy
-            if (btnPoll) btnPoll.style.display = "none";
-            if (btnLogout) btnLogout.style.display = "";
-            if (btnEvents) btnEvents.style.display = "";
+            // Start with logged-in actions hidden until we know auth state
+            if (btnLogout) btnLogout.style.display = "none";
+            if (btnEvents) btnEvents.style.display = "none";
             if (btnCopyCode) btnCopyCode.style.display = "none";
 
-            show(j);
-            return;
-        }
+            async function copyUserCode() {
+                const code = (usercode?.textContent || "").trim();
+                if (!code || code === "..." || code === "-") return;
 
-        // Not signed in: show poll, hide logout + fetch, show copy only when code is present
-        if (btnPoll) btnPoll.style.display = "";
-        if (btnLogout) btnLogout.style.display = "none";
-        if (btnEvents) btnEvents.style.display = "none";
+                try {
+                    await navigator.clipboard.writeText(code);
+                    show({ status: "copied", code_length: code.length });
+                } catch {
+                    const ta = document.createElement("textarea");
+                    ta.value = code;
+                    ta.style.position = "fixed";
+                    ta.style.left = "-9999px";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                    show({ status: "copied_fallback", code_length: code.length });
+                }
+            }
 
-        if (!j.verification_uri || !j.user_code) {
-            verification.innerHTML = "<span class='err'>Missing verification data.</span>";
-            show(j);
-            return;
-        }
+            async function startLogin() {
+                show("Calling /api/auth_microsoft/login…");
+                const r = await fetch("/api/auth_microsoft/login");
+                const j = await r.json();
 
-        verification.innerHTML = `<a href="${j.verification_uri}" target="_blank" rel="noopener noreferrer">${j.verification_uri}</a>`;
-        usercode.textContent = j.user_code;
-        if (btnCopyCode) btnCopyCode.style.display = j.user_code ? "" : "none";
+                if (j.status === "already_authenticated") {
+                    verification.innerHTML = "<span class='ok'>Already signed in.</span>";
+                    usercode.textContent = "-";
+                    expires.textContent = "";
 
-        if (j.expires_in) {
-            expires.textContent = `Code valid for about: ${j.expires_in}s (poll every ~${j.interval ?? 5}s).`;
-        } else {
-            expires.textContent = "";
-        }
+                    // Signed in: hide poll, show logout + fetch, hide copy
+                    if (btnPoll) btnPoll.style.display = "none";
+                    if (btnLogout) btnLogout.style.display = "";
+                    if (btnEvents) btnEvents.style.display = "";
+                    if (btnCopyCode) btnCopyCode.style.display = "none";
 
-        show(j);
-    }
+                    show(j);
+                    return;
+                }
 
-    async function poll() {
-        show("Calling /api/auth_microsoft/poll…");
-        const r = await fetch("/api/auth_microsoft/poll");
-        const j = await r.json().catch(() => ({ error: "Invalid JSON response." }));
-        show(j);
+                // Not signed in: show poll, hide logout + fetch, show copy only when code is present
+                if (btnPoll) btnPoll.style.display = "";
+                if (btnLogout) btnLogout.style.display = "none";
+                if (btnEvents) btnEvents.style.display = "none";
 
-        if (r.ok && j.status === "authenticated") {
-            // Automatically fetch events after successful authentication
-            await fetchEvents();
-            // Refresh page to reflect signed-in state (and hide poll)
-            location.reload();
-        }
-    }
+                if (!j.verification_uri || !j.user_code) {
+                    verification.innerHTML = "<span class='err'>Missing verification data.</span>";
+                    show(j);
+                    return;
+                }
 
-    async function logout() {
-        show("Calling /api/auth_microsoft/logout…");
-        const r = await fetch("/api/auth_microsoft/logout");
-        const j = await r.json();
-        show(j);
-        if (r.ok) {
-            // Refresh page to return to initial state
-            location.reload();
-        }
-    }
+                verification.innerHTML = `<a href="${j.verification_uri}" target="_blank" rel="noopener noreferrer">${j.verification_uri}</a>`;
+                usercode.textContent = j.user_code;
+                if (btnCopyCode) btnCopyCode.style.display = j.user_code ? "" : "none";
 
-    async function fetchEvents() {
-        show("Calling /api/auth_microsoft/events…");
-        const r = await fetch("/api/auth_microsoft/events");
-        let j;
-        try {
-            j = await r.json();
-        } catch {
-            j = {error: "Invalid response from /api/auth_microsoft/events."};
-        }
-        show(j);
-    }
+                if (j.expires_in) {
+                    expires.textContent = `Code valid for about: ${j.expires_in}s (poll every ~${j.interval ?? 5}s).`;
+                } else {
+                    expires.textContent = "";
+                }
 
-    document.getElementById("btnPoll").addEventListener("click", poll);
-    document.getElementById("btnLogout").addEventListener("click", logout);
-    document.getElementById("btnEvents").addEventListener("click", fetchEvents);
-    if (btnCopyCode) btnCopyCode.addEventListener("click", copyUserCode);
+                show(j);
+            }
 
-    // auto-start
-    startLogin().catch(e => show({error: String(e)}));
-</script>
+            async function poll() {
+                show("Calling /api/auth_microsoft/poll…");
+                const r = await fetch("/api/auth_microsoft/poll");
+                const j = await r.json().catch(() => ({ error: "Invalid JSON response." }));
+                show(j);
+
+                if (r.ok && j.status === "authenticated") {
+                    // Automatically fetch events after successful authentication
+                    await fetchEvents();
+                    // Refresh page to reflect signed-in state (and hide poll)
+                    location.reload();
+                }
+            }
+
+            async function logout() {
+                show("Calling /api/auth_microsoft/logout…");
+                const r = await fetch("/api/auth_microsoft/logout");
+                const j = await r.json();
+                show(j);
+                if (r.ok) {
+                    // Refresh page to return to initial state
+                    location.reload();
+                }
+            }
+
+            async function fetchEvents() {
+                show("Calling /api/auth_microsoft/events…");
+                const r = await fetch("/api/auth_microsoft/events");
+                let j;
+                try {
+                    j = await r.json();
+                } catch {
+                    j = {error: "Invalid response from /api/auth_microsoft/events."};
+                }
+                show(j);
+            }
+
+            document.getElementById("btnPoll").addEventListener("click", poll);
+            document.getElementById("btnLogout").addEventListener("click", logout);
+            document.getElementById("btnEvents").addEventListener("click", fetchEvents);
+            if (btnCopyCode) btnCopyCode.addEventListener("click", copyUserCode);
+
+            // auto-start
+            startLogin().catch(e => show({error: String(e)}));
+        </script>
+    </main>
+</div>
 </body>
 </html>

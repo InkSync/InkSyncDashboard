@@ -54,11 +54,11 @@ def settings():
 
 @app.route('/settings/auth_google')
 def auth_page_google():
-    return render_template('auth_google.html')
+    return render_template('auth_google.html', title='Settings - Google', key='settings')
 
 @app.route('/settings/auth_microsoft')
 def auth_page_microsoft():
-    return render_template('auth_microsoft.html')
+    return render_template('auth_microsoft.html', title='Settings - Microsoft', key='settings')
 
 @app.route('/events')
 def events():
