@@ -9,7 +9,7 @@
             <span id="automation-count"></span>
         </div>
         <div id="automation-list">
-            <!-- ...dynamicznie generowane karty... -->
+            <!-- dynamically generated cards -->
         </div>
     </main>
 </div>
@@ -18,30 +18,64 @@
     <div class="popup-content automation-editor">
         <div class="popup-header">
             <span id="popup-title">Automation Editor</span>
-            <button id="popup-close">×</button>
+            <button id="popup-close" class="btn-primary">×</button>
         </div>
 
         <div class="editor-area">
-            <!-- NOWE: edycja tytułu automacji -->
+            <!-- Automation name -->
             <div class="automation-name-row">
                 <label for="automation-name-input">Automation title</label>
                 <input type="text" id="automation-name-input" maxlength="60" placeholder="Input automation title here">
             </div>
-            <h3>Blocks</h3>
-            <div id="editor-blocks"><!-- dynamic --></div>
 
-            <div class="block-adder">
-                <select id="block-type-select">
-                    <option value="" disabled selected>Select the block type</option>
-                    <option value="Send a key">Send a key</option>
-                    <option value="Send a command">Send a command</option>
-                    <option value="Timeout">Timeout</option>
-                    <option value="Key pressed">Key pressed</option>
-                    <option value="Web request">Web request</option>
+            <!-- Automation type -->
+            <div class="automation-type-row">
+                <label for="automation-type-select">Automation type</label>
+                <select id="automation-type-select">
+                    <option value="pc">PC</option>
+                    <option value="autonomous">Autonomous</option>
                 </select>
-                <button id="add-block-btn">+ Add</button>
             </div>
 
+            <!-- Trigger section -->
+            <h3>Trigger <span class="tooltip" title="Event that starts the automation">?</span></h3>
+            <div class="trigger-config">
+                <div class="trigger-type-selector">
+                    <select id="trigger-type-select">
+                        <option value="key_press">On key press</option>
+                        <option value="knob_change">On knob change</option>
+                        <option value="knob_min">On knob at minimum</option>
+                        <option value="knob_max">On knob at maximum</option>
+                        <option value="module_connected">On module connected</option>
+                        <option value="module_disconnected">On module disconnected</option>
+                    </select>
+                </div>
+                <div id="trigger-config-fields">
+                    <!-- dynamic trigger config fields -->
+                </div>
+            </div>
+
+            <!-- Actions section -->
+            <h3>Actions <span class="tooltip" title="What happens after trigger">?</span></h3>
+            <div id="editor-actions">
+                <!-- dynamic actions -->
+            </div>
+
+            <!-- Add action -->
+            <div class="action-adder">
+                <select id="action-type-select">
+                    <option value="" disabled selected>Select action type</option>
+                    <!-- Options filtered dynamically -->
+                </select>
+                <button id="add-action-btn" class="btn-primary">+ Add Action</button>
+            </div>
+
+            <!-- Available variables help -->
+            <div class="variables-help">
+                <!-- Dynamic content will be inserted here by JavaScript -->
+            </div>
+
+            <!-- Editor actions -->
             <div class="editor-actions">
                 <button id="delete-automation-btn" class="btn-danger">Delete</button>
                 <button id="save-automation-btn" class="btn-primary">Save</button>

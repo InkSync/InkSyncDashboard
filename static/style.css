@@ -1091,13 +1091,15 @@ nav {
 .btn-danger:hover { background: #a52020; }
 
 /* NOWE: styl pola nazwy automacji */
-.automation-name-row {
+.automation-name-row,
+.automation-type-row{
     display: flex;
     flex-direction: column;
     gap: 4px;
     margin-bottom: 12px;
 }
-.automation-name-row label {
+.automation-name-row label,
+.automation-type-row label{
     font-size: 0.75em;
     font-weight: 600;
     color: #444;
@@ -1111,4 +1113,187 @@ nav {
 }
 #automation-name-input:focus {
     outline: 2px solid #222;
+}
+
+/* Add to your existing CSS */
+.tooltip {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    background: #007bff;
+    color: white;
+    border-radius: 50%;
+    margin-left: 8px;
+    font-size: 12px;
+    cursor: help;
+}
+
+.config-field {
+    margin-bottom: 10px;
+}
+
+.config-field label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.action-entry,
+.trigger-config {
+    border: 1px solid #ccc;
+    background: #fafafa;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.editor-area input,
+.editor-area select,
+.editor-area textarea {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.auto-type-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.auto-type-badge.pc {
+    background: #c73535;
+    color: white;
+}
+
+.auto-type-badge.autonomous {
+    background: #444;
+    color: white;
+}
+
+.flow-trigger {
+    background: #f0f7ff;
+    border-left: 3px solid #444;
+}
+
+.flow-action {
+    background: #f8f9fa;
+    border-left: 3px solid #888;
+}
+
+.variables-help {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.variables-help code {
+    background: #e9ecef;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.mappings-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+
+.mapping-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 6px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 3px;
+}
+
+.mapping-row:last-child {
+    margin-bottom: 0;
+}
+
+.mapping-from {
+    width: 80px;
+}
+
+.mapping-to {
+    width: 80px;
+}
+
+.mapping-delete {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+}
+
+.mapping-delete:hover {
+    background: #c82333;
+}
+
+.add-mapping-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.add-mapping-btn:hover {
+    background: #218838;
+}
+
+.range-field {
+    display: flex;
+    gap: 20px;
+}
+
+.range-input {
+    flex: 1;
+}
+
+.variables-list ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+}
+
+.variables-list li ul {
+    padding-left: 20px;
+}
+
+.variables-list code {
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.variables-help {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 15px 0;
+    font-size: 14px;
+    border-left: 4px solid #444;
 }

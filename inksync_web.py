@@ -269,7 +269,7 @@ def create_state():
     state = {"events": todays_events}
 
     try:
-        with open("state.json", "w", encoding="utf-8") as f:
+        with open(os.path.join(EVENTS_DIR, "state.json"), "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
     except Exception as exc:
         print(f"Failed to write `state.json`: {exc}")
