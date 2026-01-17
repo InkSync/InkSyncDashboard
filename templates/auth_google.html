@@ -61,7 +61,7 @@
 <body>
 <h1>Sign in with Google (Device Code)</h1>
 <p class="muted">
-    This page calls <code>/auth_google/login</code>, shows the verification URL and code, then lets you click <code>/auth_google/poll</code>.
+    This page calls <code>/api/auth_google/login</code>, shows the verification URL and code, then lets you click <code>/api/auth_google/poll</code>.
 </p>
 
 <h2>Step 1: Verification</h2>
@@ -78,7 +78,7 @@
 
 <div class="row">
     <button class="primary" id="btnPoll">Continue (poll)</button>
-    <button id="btnReload">Refresh /auth_google/login</button>
+    <button id="btnReload">Refresh /api/auth_google/login</button>
     <button id="btnLogout">Sign out</button>
     <button id="btnEvents">Fetch events</button>
 </div>
@@ -97,8 +97,8 @@
     }
 
     async function startLogin() {
-        show("Calling /auth_google/login…");
-        const r = await fetch("/auth_google/login");
+        show("Calling /api/auth_google/login…");
+        const r = await fetch("/api/auth_google/login");
         const j = await r.json();
 
         if (j.status === "already_authenticated") {
@@ -128,24 +128,28 @@
     }
 
     async function poll() {
-        show("Calling /auth_google/poll…");
-        const r = await fetch("/auth_google/poll");
-        const j = await r.json();
+        show("Calling /api/auth_google/poll…");
+        const r = await fetch("/api/auth_google/poll");
+        const j = await r.json().catch(() => ({ error: "Invalid JSON response." }));
         show(j);
+        if (r.ok && j.status === "ok") {
+            // Optional: immediately fetch events after authenticating
+            await fetchEvents();
+        }
     }
 
     async function logout() {
-        show("Calling /auth_google/logout…");
-        const r = await fetch("/auth_google/logout");
+        show("Calling /api/auth_google/logout…");
+        const r = await fetch("/api/auth_google/logout");
         const j = await r.json();
         show(j);
     }
 
     async function fetchEvents() {
-        show("Calling /auth_google/events…");
-        const r = await fetch("/auth_google/events");
-        const t = await r.text();
-        show(t);
+        show("Calling /api/auth_google/events…");
+        const r = await fetch("/api/auth_google/events");
+        const j = await r.json().catch(() => ({ error: "Invalid JSON response." }));
+        show(j);
     }
 
     document.getElementById("btnPoll").addEventListener("click", poll);

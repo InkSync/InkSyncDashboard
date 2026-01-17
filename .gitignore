@@ -5,5 +5,4 @@ configs/*
 events/*
 layout/*
 modules/*
-creds/*
-state.json
+credentials/*

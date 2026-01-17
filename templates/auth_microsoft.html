@@ -61,7 +61,7 @@
 <body>
 <h1>Sign in with Microsoft (Device Code)</h1>
 <p class="muted">
-    This page calls <code>/login</code>, shows the verification URL and code, then lets you click <code>/poll</code>.
+    This page calls <code>/api/auth_microsoft/login</code>, shows the verification URL and code, then lets you click <code>/api/auth_microsoft/poll</code>.
 </p>
 
 <h2>Step 1: Verification</h2>
@@ -78,7 +78,7 @@
 
 <div class="row">
     <button class="primary" id="btnPoll">Continue (poll)</button>
-    <button id="btnReload">Refresh /login</button>
+    <button id="btnReload">Refresh /api/auth_microsoft/login</button>
     <button id="btnLogout">Sign out</button>
     <button id="btnEvents">Fetch events</button>
 </div>
@@ -97,8 +97,8 @@
     }
 
     async function startLogin() {
-        show("Calling /login…");
-        const r = await fetch("/auth_microsoft/login");
+        show("Calling /api/auth_microsoft/login…");
+        const r = await fetch("/api/auth_microsoft/login");
         const j = await r.json();
 
         if (j.status === "already_authenticated") {
@@ -128,27 +128,32 @@
     }
 
     async function poll() {
-        show("Calling /poll…");
-        const r = await fetch("/auth_microsoft/poll");
-        const j = await r.json();
+        show("Calling /api/auth_microsoft/poll…");
+        const r = await fetch("/api/auth_microsoft/poll");
+        const j = await r.json().catch(() => ({ error: "Invalid JSON response." }));
         show(j);
+
+        if (r.ok && j.status === "authenticated") {
+            // Automatically fetch events after successful authentication
+            await fetchEvents();
+        }
     }
 
     async function logout() {
-        show("Calling /logout…");
-        const r = await fetch("/auth_microsoft/logout");
+        show("Calling /api/auth_microsoft/logout…");
+        const r = await fetch("/api/auth_microsoft/logout");
         const j = await r.json();
         show(j);
     }
 
     async function fetchEvents() {
-        show("Calling /events…");
-        const r = await fetch("/auth_microsoft/events");
+        show("Calling /api/auth_microsoft/events…");
+        const r = await fetch("/api/auth_microsoft/events");
         let j;
         try {
             j = await r.json();
         } catch {
-            j = {error: "Invalid response from /events."};
+            j = {error: "Invalid response from /api/auth_microsoft/events."};
         }
         show(j);
     }
@@ -163,4 +168,3 @@
 </script>
 </body>
 </html>
-
