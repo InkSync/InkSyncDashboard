@@ -16,19 +16,12 @@ async function refreshIndicators() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".integration-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const service = btn.dataset.service;
+      document.querySelectorAll(".integration-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+              const service = btn.dataset.service;
+              window.location.href = `/settings/auth_${service}`;
+          });
+      });
 
-            await fetch("/api/integrate", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({service})
-            });
-
-            refreshIndicators();
-        });
-    });
-
-    refreshIndicators();
-});
+      refreshIndicators();
+  });

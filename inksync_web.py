@@ -22,7 +22,10 @@ AUTOMATIONS_DIR = 'automations'
 CREDENTIALS_DIR = 'credentials'
 
 # --- Integration status ---
-integration_status = {"microsoft": False, "google": False}
+integration_status = {
+    "microsoft": os.path.exists(os.path.join(CREDENTIALS_DIR, "microsoft_session.json")),
+    "google": os.path.exists(os.path.join(CREDENTIALS_DIR, "google_session.json")),
+}
 
 # --- Module type enum ---
 class ModuleType(str, Enum):
@@ -218,14 +221,6 @@ def create_state():
         print(f"Failed to write state.json: {exc}")
 
 # ------------------ Integration status ------------------
-@app.route("/api/integrate", methods=["POST"])
-def set_integration():
-    data = request.get_json()
-    service = data.get("service")
-    if service not in integration_status:
-        return jsonify({"error": "Unknown service"}), 400
-    integration_status[service] = True
-    return jsonify({"status": "OK"})
 
 @app.route("/api/integration-status/<service>", methods=["GET"])
 def get_integration_status(service):
@@ -498,6 +493,7 @@ def api_ms_login():
 def logout():
     if os.path.exists(MS_SESSION_FILE):
         os.remove(MS_SESSION_FILE)
+        integration_status["microsoft"] = False
         return jsonify({"status": "logged_out", "message": "Sesja została usunięta."})
     return jsonify({"status": "no_session", "message": "Brak pliku microsoft_session.json."}), 200
 
