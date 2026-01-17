@@ -11,8 +11,8 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 MODULES_DIR = 'modules'
 CONFIG_DIR  = "configs"
 EVENTS_DIR  = 'events'
-LAYOUT_DIR  = 'layout'        # <-- nowy katalog na layouty
-AUTOMATIONS_DIR = 'automations'  # <-- katalog na automacje
+LAYOUT_DIR  = 'layout'
+AUTOMATIONS_DIR = 'automations'
 
 
 integration_status = {
@@ -348,7 +348,6 @@ def save_automations():
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
     return jsonify({"status": "saved"})
-
 
 
 if __name__ == '__main__':

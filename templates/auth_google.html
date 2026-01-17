@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Google Auth</title>
+    <style>
+        body {
+            font-family: system-ui, Arial, sans-serif;
+            max-width: 760px;
+            margin: 32px auto;
+            padding: 0 16px;
+        }
+
+        code, pre {
+            background: #f4f4f6;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        pre {
+            padding: 12px;
+            overflow: auto;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        button.primary {
+            border-color: #2b6cb0;
+        }
+
+        .muted {
+            color: #555;
+        }
+
+        .ok {
+            color: #0a7a2f;
+        }
+
+        .err {
+            color: #b00020;
+        }
+
+        a {
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+<h1>Sign in with Google (Device Code)</h1>
+<p class="muted">
+    This page calls <code>/auth_google/login</code>, shows the verification URL and code, then lets you click <code>/auth_google/poll</code>.
+</p>
+
+<h2>Step 1: Verification</h2>
+<div id="step1">
+    <p>
+        Verification URL:
+        <span id="verification"></span>
+    </p>
+    <p>
+        User code: <code id="usercode">...</code>
+    </p>
+    <p class="muted" id="expires"></p>
+</div>
+
+<div class="row">
+    <button class="primary" id="btnPoll">Continue (poll)</button>
+    <button id="btnReload">Refresh /auth_google/login</button>
+    <button id="btnLogout">Sign out</button>
+    <button id="btnEvents">Fetch events</button>
+</div>
+
+<h2>Result</h2>
+<pre id="out">Loading…</pre>
+
+<script>
+    const out = document.getElementById("out");
+    const verification = document.getElementById("verification");
+    const usercode = document.getElementById("usercode");
+    const expires = document.getElementById("expires");
+
+    function show(obj) {
+        out.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+    }
+
+    async function startLogin() {
+        show("Calling /auth_google/login…");
+        const r = await fetch("/auth_google/login");
+        const j = await r.json();
+
+        if (j.status === "already_authenticated") {
+            verification.innerHTML = "<span class='ok'>Already signed in.</span>";
+            usercode.textContent = "-";
+            expires.textContent = "";
+            show(j);
+            return;
+        }
+
+        if (!j.verification_uri || !j.user_code) {
+            verification.innerHTML = "<span class='err'>Missing verification data.</span>";
+            show(j);
+            return;
+        }
+
+        verification.innerHTML = `<a href="${j.verification_uri}" target="_blank" rel="noopener noreferrer">${j.verification_uri}</a>`;
+        usercode.textContent = j.user_code;
+
+        if (j.expires_in) {
+            expires.textContent = `Code valid for about: ${j.expires_in}s (poll every ~${j.interval ?? 5}s).`;
+        } else {
+            expires.textContent = "";
+        }
+
+        show(j);
+    }
+
+    async function poll() {
+        show("Calling /auth_google/poll…");
+        const r = await fetch("/auth_google/poll");
+        const j = await r.json();
+        show(j);
+    }
+
+    async function logout() {
+        show("Calling /auth_google/logout…");
+        const r = await fetch("/auth_google/logout");
+        const j = await r.json();
+        show(j);
+    }
+
+    async function fetchEvents() {
+        show("Calling /auth_google/events…");
+        const r = await fetch("/auth_google/events");
+        const t = await r.text();
+        show(t);
+    }
+
+    document.getElementById("btnPoll").addEventListener("click", poll);
+    document.getElementById("btnReload").addEventListener("click", startLogin);
+    document.getElementById("btnLogout").addEventListener("click", logout);
+    document.getElementById("btnEvents").addEventListener("click", fetchEvents);
+
+    // Auto-start
+    startLogin().catch(e => show({error: String(e)}));
+</script>
+</body>
+</html>
+

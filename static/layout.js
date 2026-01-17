@@ -100,7 +100,7 @@ function createWidgetFromLayout(elem) {
 
     switch (type) {
         case "events":
-            widget.innerHTML = "<b>Event List</b>";
+            widget.innerHTML = "";
             const ul = document.createElement('ul');
             ul.className = 'event-list';
             const sampleEvents = [
@@ -122,7 +122,6 @@ function createWidgetFromLayout(elem) {
             break;
         case "text":
             widget.innerHTML =
-                "<b>Text</b>" +
                 "<textarea class='widget-textarea' style='width:100%;height:calc(100% - 30px);'></textarea>";
             if (elem.content) {
                 const ta = widget.querySelector('.widget-textarea');
@@ -130,7 +129,7 @@ function createWidgetFromLayout(elem) {
             }
             break;
         case "calendar":
-            widget.innerHTML = "<b>Calendar</b>" + generateCalendar();
+            widget.innerHTML = generateCalendar();
             break;
     }
 
