@@ -1304,11 +1304,49 @@ nav {
     color: #222;
 }
 
+.auth-page {
+    /* keep existing look, just allow vertical fill inside .content */
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .auth-wrap {
-    max-width: 860px;
-    margin: 40px auto;
-    padding: 0 16px;
-    font-family: "JetBrains Mono", monospace;
+    /* use more width inside content area */
+    max-width: 1240px;          /* additive override (was 860px) */
+    width: 100%;
+
+    /* reduce empty space around and allow vertical expansion */
+    margin: 20px auto;          /* additive override (was 40px auto) */
+    padding: 0 24px;            /* additive override (was 0 16px) */
+
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+}
+
+.auth-card {
+    /* let the card fill the available wrap size */
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+/* optional: keep nice spacing on very large screens without changing style */
+@media (min-width: 1400px) {
+    .auth-wrap {
+        max-width: 1320px;
+    }
+}
+
+/* keep mobile consistent */
+@media (max-width: 720px) {
+    .auth-wrap {
+        margin: 14px auto;
+        padding: 0 14px;
+    }
 }
 
 .auth-card {
@@ -1521,3 +1559,73 @@ nav {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* --- Auth layout helpers (additive) --- */
+.auth-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-status {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-row {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 12px;
+    align-items: start;
+}
+
+.auth-label {
+    font-weight: 700;
+    color: #222;
+    font-size: 0.95rem;
+    padding-top: 2px;
+}
+
+.auth-value {
+    min-width: 0;
+}
+
+.auth-code-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auth-actions--spread {
+    margin-top: 18px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-actions-right {
+    display: inline-flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+    .auth-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    .auth-label {
+        font-size: 0.9rem;
+        color: #444;
+    }
+    .auth-actions--spread {
+        align-items: stretch;
+    }
+    .auth-actions-right {
+        width: 100%;
+    }
+}
+

@@ -5,33 +5,42 @@
     <main class="content auth-page">
         <div class="auth-wrap">
             <div class="auth-card">
-                <div class="auth-back">
-                    <a class="auth-back-link" href="/settings" aria-label="Back to Settings">← Back to Settings</a>
+                <div class="auth-header">
+                    <div class="auth-back">
+                        <a class="auth-back-link" href="/settings" aria-label="Back to Settings">← Back to Settings</a>
+                    </div>
+                    <div class="auth-title">Sign in with Google</div>
                 </div>
-
-                <div class="auth-title">Sign in with Google</div>
-                <p class="auth-subtitle">
-                    This page calls <code>/api/auth_google/login</code>, shows the verification URL and code, then lets you click <code>/api/auth_google/poll</code>.
-                </p>
 
                 <div class="auth-section-title">Status</div>
-                <div id="step1" class="auth-kv">
-                    <p>
-                        Verification URL:
-                        <span id="verification" class="auth-link"></span>
-                    </p>
-                    <p>
-                        User code:
-                        <code id="usercode">...</code>
-                        <button class="auth-btn auth-btn--small" id="btnCopyCode" type="button">Copy code</button>
-                    </p>
-                    <p class="auth-muted" id="expires"></p>
+                <div id="step1" class="auth-kv auth-status">
+                    <div class="auth-row">
+                        <div class="auth-label">Verification URL</div>
+                        <div class="auth-value auth-link">
+                            <span id="verification"></span>
+                        </div>
+                    </div>
+
+                    <div class="auth-row">
+                        <div class="auth-label">User code</div>
+                        <div class="auth-value auth-code-row">
+                            <code id="usercode">...</code>
+                            <button class="auth-btn auth-btn--small" id="btnCopyCode" type="button">Copy code</button>
+                        </div>
+                    </div>
+
+                    <div class="auth-row">
+                        <div class="auth-label">Info</div>
+                        <div class="auth-value auth-muted" id="expires"></div>
+                    </div>
                 </div>
 
-                <div class="auth-actions">
+                <div class="auth-actions auth-actions--spread">
                     <button class="auth-btn primary" id="btnPoll">Continue (poll)</button>
-                    <button class="auth-btn" id="btnLogout">Sign out</button>
-                    <button class="auth-btn" id="btnEvents">Fetch events</button>
+                    <div class="auth-actions-right">
+                        <button class="auth-btn" id="btnEvents">Fetch events</button>
+                        <button class="auth-btn" id="btnLogout">Sign out</button>
+                    </div>
                 </div>
             </div>
         </div>

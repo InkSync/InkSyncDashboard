@@ -22,9 +22,33 @@ AUTOMATIONS_DIR = 'automations'
 CREDENTIALS_DIR = 'credentials'
 
 # --- Integration status ---
+# Note: device-flow creates a session file before authentication completes.
+# "Integrated" means "session contains access_token", not "file exists".
+GOOGLE_SESSION_PATH = os.path.join(CREDENTIALS_DIR, "google_session.json")
+MS_SESSION_PATH = os.path.join(CREDENTIALS_DIR, "microsoft_session.json")
+
+def _safe_load_json(path: str):
+    """Load JSON file and return a dict; returns {} on missing/invalid content."""
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                obj = json.load(f)
+            return obj if isinstance(obj, dict) else {}
+    except Exception:
+        return {}
+    return {}
+
+def _has_google_token() -> bool:
+    """True if Google session currently has an access_token."""
+    return bool(_safe_load_json(GOOGLE_SESSION_PATH).get("access_token"))
+
+def _has_ms_token() -> bool:
+    """True if Microsoft session currently has an access_token."""
+    return bool(_safe_load_json(MS_SESSION_PATH).get("access_token"))
+
 integration_status = {
-    "microsoft": os.path.exists(os.path.join(CREDENTIALS_DIR, "microsoft_session.json")),
-    "google": os.path.exists(os.path.join(CREDENTIALS_DIR, "google_session.json")),
+    "microsoft": _has_ms_token(),
+    "google": _has_google_token(),
 }
 
 # --- Module type enum ---
@@ -35,7 +59,7 @@ class ModuleType(str, Enum):
 # --- Default config ---
 DEFAULT_CONFIG = {f"KEY{i}": [None, None] for i in range(9)}
 
-# ------------------ Routes for pages ------------------
+# ------------------ Page routes ------------------
 @app.route('/')
 def home():
     return render_template('index.html', title='Device', key='device')
@@ -237,8 +261,7 @@ def create_state():
     except Exception as exc:
         print(f"Failed to write state.json: {exc}")
 
-# ------------------ Integration status ------------------
-
+# ------------------ Integration status API ------------------
 @app.route("/api/integration-status/<service>", methods=["GET"])
 def get_integration_status(service):
     if service not in integration_status:
@@ -295,7 +318,7 @@ def save_automations():
         return jsonify({"error": str(exc)}), 500
     return jsonify({"status": "saved"})
 
-# ------------------ Google Integration ------------------
+# ------------------ Google integration (device flow) ------------------
 if Credentials:
     GOOGLE_CLIENT_FILE = os.path.join(CREDENTIALS_DIR, "google_secret.json")
     GOOGLE_SESSION_FILE = os.path.join(CREDENTIALS_DIR, "google_session.json")
@@ -309,7 +332,7 @@ if Credentials:
         GOOGLE_CLIENT = None
 
     def _load_google_session():
-        """Load persisted session JSON (device_code / tokens). Returns dict."""
+        """Load persisted Google session JSON (device_code and/or tokens)."""
         if os.path.exists(GOOGLE_SESSION_FILE):
             try:
                 with open(GOOGLE_SESSION_FILE, "r", encoding="utf-8") as f:
@@ -320,7 +343,7 @@ if Credentials:
         return {}
 
     def _google_creds_from_session(sess: dict):
-        """Build Credentials from session dict, or None if incomplete."""
+        """Create Credentials from a session dict; returns None if not authenticated."""
         if not sess or not sess.get("access_token"):
             return None
         if not GOOGLE_CLIENT:
@@ -335,6 +358,7 @@ if Credentials:
         )
 
     def _save_google_session(data):
+        """Merge and persist Google session data."""
         os.makedirs(CREDENTIALS_DIR, exist_ok=True)
         sess = _load_google_session()
         sess.update(data or {})
@@ -342,7 +366,8 @@ if Credentials:
             json.dump(sess, f, indent=2, ensure_ascii=False)
 
     def _google_time_to_str(value):
-        # Google returns {"dateTime": "..."} or {"date": "..."}; keep a string for parse_event_date()
+        # Google returns {"dateTime": "..."} or {"date": "..."}; store a plain string
+        # so parse_event_date() can consume it.
         if isinstance(value, dict):
             return value.get("dateTime") or value.get("date")
         return value
@@ -356,7 +381,11 @@ if Credentials:
         sess = _load_google_session()
         google_creds = google_creds or _google_creds_from_session(sess)
         if google_creds:
+            integration_status["google"] = True
             return jsonify({"status": "already_authenticated"})
+
+        # Device flow start: creates/updates session data, but not authenticated until poll returns a token.
+        integration_status["google"] = bool(sess.get("access_token"))
 
         resp = requests.post(
             "https://oauth2.googleapis.com/device/code",
@@ -367,7 +396,6 @@ if Credentials:
             return jsonify({"error": resp}), 400
 
         _save_google_session({"device_code": resp["device_code"], "interval": resp.get("interval", 5)})
-
         return jsonify({
             "verification_uri": resp.get("verification_url") or resp.get("verification_uri"),
             "user_code": resp.get("user_code"),
@@ -417,9 +445,9 @@ if Credentials:
             break
 
         if not token_resp or "access_token" not in token_resp:
+            integration_status["google"] = False
             return jsonify(token_resp or {"error": "Unknown error"}), 400
 
-        # Persist a complete session so we can rebuild creds later
         _save_google_session({
             "access_token": token_resp["access_token"],
             "refresh_token": token_resp.get("refresh_token"),
@@ -435,58 +463,11 @@ if Credentials:
         integration_status["google"] = True
         return jsonify({"status": "ok"})
 
-    @app.route("/api/auth_google/events")
-    def api_google_events():
-        global google_creds
-        if not GOOGLE_CLIENT:
-            return jsonify({"error": f"Missing Google client secrets at {GOOGLE_CLIENT_FILE}"}), 400
-
-        google_creds = google_creds or _google_creds_from_session(_load_google_session())
-        if not google_creds:
-            return jsonify({"error": "Authenticate first"}), 400
-
-        service = build("calendar", "v3", credentials=google_creds)
-
-        events = []
-        calendars = service.calendarList().list().execute().get("items", [])
-        for cal in calendars:
-            page_token = None
-            while True:
-                resp = (
-                    service.events()
-                    .list(
-                        calendarId=cal["id"],
-                        singleEvents=True,
-                        orderBy="startTime",
-                        pageToken=page_token,
-                        maxResults=2500,
-                        showDeleted=False,
-                    )
-                    .execute()
-                )
-                events.extend(resp.get("items", []))
-                page_token = resp.get("nextPageToken")
-                if not page_token:
-                    break
-
-        simple_events = [{
-            "id": e.get("id"),
-            "name": e.get("summary") or "Unnamed Event",
-            "start": _google_time_to_str(e.get("start")),
-            "end": _google_time_to_str(e.get("end")) or _google_time_to_str(e.get("start")),
-        } for e in events]
-
-        filename = os.path.join(EVENTS_DIR, "google.json")
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(simple_events, f, indent=2, ensure_ascii=False)
-
-        create_state()
-        return jsonify({"status": "saved", "count": len(simple_events)})
-
-# ------------------ Microsoft Integration ------------------
+# ------------------ Microsoft integration (device flow) ------------------
 MS_CLIENT_FILE = os.path.join(CREDENTIALS_DIR, "microsoft_secret.json")
 MS_SESSION_FILE = os.path.join(CREDENTIALS_DIR, "microsoft_session.json")
 MS_CLIENT, MS_SCOPES, MS_TENANT = "", "", "common"
+
 if os.path.exists(MS_CLIENT_FILE):
     with open(MS_CLIENT_FILE, "r", encoding="utf-8") as f:
         cfg = json.load(f)
@@ -508,9 +489,17 @@ def _save_ms_session(data):
 def api_ms_login():
     sess = _load_ms_session()
     if sess.get("access_token"):
+        integration_status["microsoft"] = True
         return jsonify({"status": "already_authenticated"})
-    resp = requests.post(f"https://login.microsoftonline.com/{MS_TENANT}/oauth2/v2.0/devicecode",
-                         data={"client_id": MS_CLIENT, "scope": MS_SCOPES}).json()
+
+    # Device flow start: writes device_code into session, but not authenticated until poll returns a token.
+    integration_status["microsoft"] = False
+
+    resp = requests.post(
+        f"https://login.microsoftonline.com/{MS_TENANT}/oauth2/v2.0/devicecode",
+        data={"client_id": MS_CLIENT, "scope": MS_SCOPES},
+        timeout=30,
+    ).json()
     sess.update({"device_code": resp["device_code"], "interval": resp.get("interval", 5)})
     _save_ms_session(sess)
     return jsonify({
@@ -524,9 +513,8 @@ def api_ms_login():
 def logout():
     if os.path.exists(MS_SESSION_FILE):
         os.remove(MS_SESSION_FILE)
-        integration_status["microsoft"] = False
-        return jsonify({"status": "logged_out", "message": "Sesja została usunięta."})
-    return jsonify({"status": "no_session", "message": "Brak pliku microsoft_session.json."}), 200
+    integration_status["microsoft"] = False
+    return jsonify({"status": "logged_out", "message": "Session file has been removed."})
 
 @app.route("/api/auth_microsoft/poll")
 def api_ms_poll():
@@ -534,54 +522,25 @@ def api_ms_poll():
     device_code, interval = sess.get("device_code"), sess.get("interval", 5)
     if not device_code:
         return jsonify({"error": "Start login first"}), 400
-    resp = requests.post(f"https://login.microsoftonline.com/{MS_TENANT}/oauth2/v2.0/token",
-                         data={"grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-                               "client_id": MS_CLIENT, "device_code": device_code}).json()
+
+    resp = requests.post(
+        f"https://login.microsoftonline.com/{MS_TENANT}/oauth2/v2.0/token",
+        data={
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "client_id": MS_CLIENT,
+            "device_code": device_code,
+        },
+        timeout=30,
+    ).json()
+
     if "access_token" in resp:
         sess.update({"device_code": None, "interval": None, "access_token": resp["access_token"]})
         _save_ms_session(sess)
         integration_status["microsoft"] = True
         return jsonify({"status": "authenticated"})
-    return jsonify(resp)
 
-@app.route("/api/auth_microsoft/events")
-def api_ms_events():
-    sess = _load_ms_session()
-    token = sess.get("access_token")
-    if not token:
-        return jsonify({"error": "Authenticate first"}), 401
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    all_items = []
-    url = "https://graph.microsoft.com/v1.0/me/events"
-    params = {"$top": "1000"}  # Graph caps per page; nextLink will paginate
-    while True:
-        resp = requests.get(url, headers=headers, params=params, timeout=30)
-        data = resp.json()
-        if resp.status_code >= 400:
-            return jsonify({"error": data, "status_code": resp.status_code}), resp.status_code
-
-        all_items.extend(data.get("value", []))
-        next_link = data.get("@odata.nextLink")
-        if not next_link:
-            break
-        url = next_link
-        params = None  # nextLink already contains query params
-
-    simple_events = [{
-        "id": e.get("id"),
-        "name": e.get("subject"),
-        "start": (e.get("start") or {}).get("dateTime"),
-        "end": (e.get("end") or {}).get("dateTime"),
-    } for e in all_items]
-
-    filename = os.path.join(EVENTS_DIR, "microsoft.json")
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(simple_events, f, indent=2, ensure_ascii=False)
-
-    create_state()
-    return jsonify(simple_events)
+    integration_status["microsoft"] = False
+    return jsonify(resp), 400
 
 # ------------------ Run ------------------
 if __name__ == "__main__":
