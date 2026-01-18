@@ -1,20 +1,17 @@
-/* --- LAYOUT CREATOR PAGE --- */
 const workspace = document.getElementById("workspace") || document.querySelector(".layout-workspace");
 const toolbarItems = document.querySelectorAll(".widget-item");
 
 const GRID_SIZE = 20;
 let currentDraggedType = null;
 
-/* ---- Drag start from toolbar ---- */
 toolbarItems.forEach(item => {
-    if (item.dataset.type) {            // tylko prawdziwe elementy, nie przycisk zapisu
+    if (item.dataset.type) {
         item.addEventListener("dragstart", e => {
             currentDraggedType = e.target.dataset.type;
         });
     }
 });
 
-/* ---- Allow dropping on workspace ---- */
 workspace.addEventListener("dragover", e => e.preventDefault());
 
 workspace.addEventListener("drop", e => {
@@ -30,7 +27,6 @@ workspace.addEventListener("drop", e => {
     currentDraggedType = null;
 });
 
-/* ---- Create widget (drag‑drop) ---- */
 function createWidget(type, x, y) {
     const widget = document.createElement("div");
     widget.classList.add("widget", `widget-${type}`);
@@ -41,8 +37,7 @@ function createWidget(type, x, y) {
     widget.style.height = "120px";
 
     switch (type) {
-        case "events":
-            /* ----------  Event list (English)  --------- */
+        case "events": {
             const ul = document.createElement('ul');
             ul.className = 'event-list';
             const sampleEvents = [
@@ -58,6 +53,7 @@ function createWidget(type, x, y) {
             });
             widget.appendChild(ul);
             break;
+        }
 
         case "time":
             widget.innerHTML = "<div class='time'></div>";
@@ -69,7 +65,6 @@ function createWidget(type, x, y) {
                 "<textarea class='widget-textarea' style='width:100%;height:calc(100% - 30px);'></textarea>";
             break;
 
-
         case "calendar":
             widget.innerHTML = generateCalendar();
             break;
@@ -77,12 +72,11 @@ function createWidget(type, x, y) {
 
     addResizeHandle(widget);
     enableDragging(widget);
-    addCloseButton(widget);           // close button
+    addCloseButton(widget);
 
     workspace.appendChild(widget);
 }
 
-/* ---- Create widget from saved layout JSON (English titles) ---- */
 function createWidgetFromLayout(elem) {
     const type = elem.type || 'calendar';
     const widget = document.createElement("div");
@@ -93,13 +87,12 @@ function createWidgetFromLayout(elem) {
     widget.style.width = `${elem.width || 200}px`;
     widget.style.height = `${elem.height || 120}px`;
 
-    /* optional font size */
     if (elem.font && elem.font.size) {
         widget.style.fontSize = `${elem.font.size}px`;
     }
 
     switch (type) {
-        case "events":
+        case "events": {
             widget.innerHTML = "";
             const ul = document.createElement('ul');
             ul.className = 'event-list';
@@ -116,6 +109,7 @@ function createWidgetFromLayout(elem) {
             });
             widget.appendChild(ul);
             break;
+        }
         case "time":
             widget.innerHTML = "<div class='time'></div>";
             startDigitalClock(widget);
@@ -140,7 +134,6 @@ function createWidgetFromLayout(elem) {
     workspace.appendChild(widget);
 }
 
-/* ---- Resizing ---- */
 function addResizeHandle(widget) {
     const handle = document.createElement("div");
     handle.classList.add("resize-handle");
@@ -178,7 +171,6 @@ function addResizeHandle(widget) {
     widget.appendChild(handle);
 }
 
-/* ---- Dragging inside workspace ---- */
 function enableDragging(widget) {
     let dragging = false, offsetX, offsetY;
 
@@ -211,7 +203,6 @@ function enableDragging(widget) {
     });
 }
 
-/* ---- Close button helper ---- */
 function addCloseButton(widget) {
     const btn = document.createElement('span');
     btn.classList.add('widget-close');
@@ -223,7 +214,6 @@ function addCloseButton(widget) {
     widget.appendChild(btn);
 }
 
-/* ---- Digital clock logic (already present) ---- */
 function startDigitalClock(widget) {
     const display = widget.querySelector('.time');
 
@@ -233,10 +223,9 @@ function startDigitalClock(widget) {
         const mm = String(now.getMinutes()).padStart(2, '0');
         display.textContent = `${hh}:${mm}`;
 
-        /* dynamic font‑size relative to widget size */
         const w = widget.clientWidth;
         const h = widget.clientHeight;
-        const base = Math.min(w, h) / 2;   // 4 → większa czcionka
+        const base = Math.min(w, h) / 2;
         display.style.fontSize = `${base}px`;
     }
 
@@ -244,10 +233,9 @@ function startDigitalClock(widget) {
     setInterval(tick, 1000);
 }
 
-/* ---- Simple monthly calendar (English month names) ---- */
 function generateCalendar() {
     const now = new Date();
-    const month = now.toLocaleString('en-US', {month: 'long'});   // ← English
+    const month = now.toLocaleString('en-US', {month: 'long'});
     const year = now.getFullYear();
 
     let html = `<b>${month} ${year}</b><table><tr>`;
@@ -273,7 +261,6 @@ function generateCalendar() {
     return html;
 }
 
-/* ---- Load layout on page load ---- */
 window.addEventListener('DOMContentLoaded', () => {
     fetch('/api/layout')
         .then(r => r.json())
@@ -283,28 +270,26 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(err => {
-            console.warn('Brak zapisanych layoutów:', err);
+            console.warn('No saved layouts:', err);
         });
 });
 
-/* ---- Save current layout on button click ---- */
 document.getElementById('saveLayoutBtn').addEventListener('click', () => {
     const elements = [];
-    workspace.querySelectorAll('.widget').forEach(widget=>{
-        const typeMatch=widget.className.match(/widget-(\w+)/);
+    workspace.querySelectorAll('.widget').forEach(widget => {
+        const typeMatch = widget.className.match(/widget-(\w+)/);
         if (!typeMatch) return;
         const type = typeMatch[1];
 
         const elem = {
             type: type,
-            x: parseInt(widget.style.left,10),
-            y: parseInt(widget.style.top,10),
+            x: parseInt(widget.style.left, 10),
+            y: parseInt(widget.style.top, 10),
             text_style: "bold",
             width: widget.offsetWidth,
             height: widget.offsetHeight
         };
 
-        /* ---- capture text content if applicable ---- */
         if (type === 'text') {
             const ta = widget.querySelector('.widget-textarea');
             elem.content = ta ? ta.value : "";
@@ -313,19 +298,19 @@ document.getElementById('saveLayoutBtn').addEventListener('click', () => {
         elements.push(elem);
     });
 
-    const layoutData = {elements};
+    const layoutData = { elements };
 
     fetch('/api/layout', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(layoutData)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(layoutData)
     })
-    .then(r=>r.json())
-    .then(res=>{
+    .then(r => r.json())
+    .then(res => {
         console.log('Layout saved:', res);
         alert('Layout saved!');
     })
-    .catch(err=>{
+    .catch(err => {
         console.error(err);
         alert('Error saving layout.');
     });

@@ -1,15 +1,12 @@
-// --- Calendar state (minimal, sane) ---
 let calendar;
 let currentEvents = [];
 
-// --- Init ---
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("calendar")) {
         initEventsPage();
     }
 });
 
-// --- FullCalendar init ---
 function initEventsPage() {
     const calendarEl = document.getElementById("calendar");
 
@@ -26,7 +23,6 @@ function initEventsPage() {
             right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
 
-        // Server-side event loading
         events: fetchEventsForCalendar,
 
         eventTimeFormat: {
@@ -50,7 +46,6 @@ function initEventsPage() {
     document.querySelector(".add-event-btn").onclick = () => openAddEventPopup();
 }
 
-// --- Fetch events based on visible range ---
 function fetchEventsForCalendar(info, successCallback, failureCallback) {
     fetch(`/api/events?from=${info.start.toISOString()}&to=${info.end.toISOString()}`)
         .then(res => res.json())
@@ -80,7 +75,6 @@ function fetchEventsForCalendar(info, successCallback, failureCallback) {
         });
 }
 
-// --- Render table ---
 function renderEventList() {
     const tbody = document.querySelector("#events-table tbody");
     tbody.innerHTML = "";
@@ -110,7 +104,6 @@ function renderEventList() {
     });
 }
 
-// --- Delete event ---
 function deleteEvent(id) {
     fetch("/api/delete/event", {
         method: "POST",
@@ -121,22 +114,20 @@ function deleteEvent(id) {
     .catch(err => console.error("Error deleting event:", err));
 }
 
-// --- Date formatting ---
 function formatDateTime(dt) {
     return new Date(dt).toLocaleString();
 }
 
 function uuidv4_time() {
-        let t = Date.now()
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = (t + Math.random() * 16) % 16 | 0
-            t = Math.floor(t / 16)
-            const v = c === 'x' ? r : (r & 0x3 | 0x8)
-            return v.toString(16)
-        })
-    }
+    let t = Date.now();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = (t + Math.random() * 16) % 16 | 0;
+        t = Math.floor(t / 16);
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
-// --- Add event popup ---
 function openAddEventPopup(defaultDate = "") {
     const popup = document.createElement("div");
     popup.classList.add("popup");

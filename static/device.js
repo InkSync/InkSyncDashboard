@@ -1,18 +1,16 @@
-// --- UI Elements ---
 const tab1 = document.getElementById("tab1");
 const tab2 = document.getElementById("tab2");
 const content = document.getElementById("module-content");
 
 let currentModule = null;
 let currentData = null;
-let activePage = null; // startowo brak aktywnej zakładki
+let activePage = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     checkFiles();
-    setInterval(checkFiles, 1000); // co sekundę aktualizujemy taby
+    setInterval(checkFiles, 1000);
 });
 
-// --- Check if JSON files exist ---
 async function checkFiles() {
     try {
         const res = await fetch('/api/check');
@@ -25,25 +23,22 @@ async function checkFiles() {
     }
 }
 
-// --- Update individual tab ---
 async function updateTab(tab, available, page) {
     tab.classList.remove("enabled", "disabled", "active");
 
     if (available) {
         tab.classList.add("enabled");
 
-        // nadajemy active tylko jeśli to current activePage
         if (activePage === page) {
             tab.classList.add("active");
         }
 
         tab.onclick = async () => {
-            activePage = page;       // ustawiamy activePage po kliknięciu
-            setActiveTab(tab);       // zmienia klasę active
-            await loadModule(page);  // ładujemy moduł
+            activePage = page;
+            setActiveTab(tab);
+            await loadModule(page);
         };
 
-        // pobierz device_name jeśli możliwe
         try {
             const res = await fetch(`/api/${page}`);
             if (res.ok) {
@@ -62,13 +57,11 @@ async function updateTab(tab, available, page) {
     }
 }
 
-// --- Set active tab appearance po kliknięciu ---
 function setActiveTab(tab) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
 }
 
-// --- Load module specs from JSON + module config ---
 async function loadModule(page) {
     try {
         const res = await fetch(`/api/${page}`);
@@ -81,7 +74,6 @@ async function loadModule(page) {
         currentModule = page;
         currentData = structuredClone(data);
 
-        // --- Load configuration using UUID ---
         let config = null;
         if (data.uuid) {
             const cfgRes = await fetch(`/api/config/${data.uuid}`);
@@ -106,7 +98,6 @@ function renderSpecs(data, config) {
 
     let html = "";
 
-    // --- Module info ---
     html += `
     <div class="info-section">
         <h3>Module Information</h3>
@@ -120,7 +111,6 @@ function renderSpecs(data, config) {
         </table>
     </div>`;
 
-    // --- Configuration display (read-only) ---
     if (config && Object.keys(config).length > 0) {
         html += `
         <div class="info-section">
@@ -138,7 +128,6 @@ function renderSpecs(data, config) {
 
     content.innerHTML = html;
 
-    // --- Update tab label to device name if active ---
     const activeTab = document.querySelector(".tab.active");
     if (activeTab && data.device_name) {
         activeTab.textContent = data.device_name;

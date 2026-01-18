@@ -10,7 +10,6 @@ from werkzeug.utils import secure_filename
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-# Flask app
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # --- Directories ---
@@ -372,6 +371,46 @@ if Credentials:
             return value.get("dateTime") or value.get("date")
         return value
 
+    def _google_event_to_internal(e: dict, calendar_id: str):
+        start = _google_time_to_str((e or {}).get("start"))
+        end = _google_time_to_str((e or {}).get("end"))
+        all_day = isinstance((e or {}).get("start"), dict) and "date" in (e.get("start") or {})
+        eid = str((e or {}).get("id") or "")
+        return {
+            "id": f"g:{calendar_id}:{eid}" if eid else f"g:{calendar_id}:{hash(json.dumps(e, sort_keys=True, default=str))}",
+            "name": (e or {}).get("summary") or "Untitled Event",
+            "start": start,
+            "end": end or start,
+            "allDay": bool(all_day),
+        }
+
+    def _google_list_all_events(service):
+        items = []
+        calendars = (service.calendarList().list().execute() or {}).get("items", [])
+        for cal in calendars:
+            cal_id = cal.get("id")
+            if not cal_id:
+                continue
+            page_token = None
+            while True:
+                resp = (
+                    service.events()
+                    .list(
+                        calendarId=cal_id,
+                        singleEvents=True,
+                        orderBy="startTime",
+                        maxResults=2500,
+                        pageToken=page_token,
+                    )
+                    .execute()
+                )
+                for e in (resp or {}).get("items", []):
+                    items.append(_google_event_to_internal(e, cal_id))
+                page_token = (resp or {}).get("nextPageToken")
+                if not page_token:
+                    break
+        return items
+
     @app.route("/api/auth_google/login")
     def api_google_login():
         global google_creds
@@ -463,6 +502,31 @@ if Credentials:
         integration_status["google"] = True
         return jsonify({"status": "ok"})
 
+    @app.route("/api/auth_google/events")
+    def api_google_events():
+        global google_creds
+        if not GOOGLE_CLIENT:
+            return jsonify({"error": f"Missing Google client secrets at {GOOGLE_CLIENT_FILE}"}), 400
+
+        sess = _load_google_session()
+        google_creds = google_creds or _google_creds_from_session(sess)
+        if not google_creds:
+            integration_status["google"] = False
+            return jsonify({"error": "Not authenticated. Start login first."}), 401
+
+        try:
+            service = build("calendar", "v3", credentials=google_creds)
+            events = _google_list_all_events(service)
+            os.makedirs(EVENTS_DIR, exist_ok=True)
+            out_path = os.path.join(EVENTS_DIR, "google.json")
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(events, f, indent=2, ensure_ascii=False)
+            create_state()
+            integration_status["google"] = True
+            return jsonify({"status": "ok", "count": len(events)})
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
 # ------------------ Microsoft integration (device flow) ------------------
 MS_CLIENT_FILE = os.path.join(CREDENTIALS_DIR, "microsoft_secret.json")
 MS_SESSION_FILE = os.path.join(CREDENTIALS_DIR, "microsoft_session.json")
@@ -477,13 +541,48 @@ if os.path.exists(MS_CLIENT_FILE):
 def _load_ms_session():
     if os.path.exists(MS_SESSION_FILE):
         with open(MS_SESSION_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            obj = json.load(f)
+        return obj if isinstance(obj, dict) else {}
     return {}
 
 def _save_ms_session(data):
     os.makedirs(CREDENTIALS_DIR, exist_ok=True)
     with open(MS_SESSION_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+def _ms_event_time_to_str(dt_obj: dict):
+    if isinstance(dt_obj, dict):
+        return dt_obj.get("dateTime")
+    return None
+
+def _ms_event_to_internal(e: dict):
+    start = _ms_event_time_to_str((e or {}).get("start"))
+    end = _ms_event_time_to_str((e or {}).get("end"))
+    all_day = bool((e or {}).get("isAllDay"))
+    eid = str((e or {}).get("id") or "")
+    return {
+        "id": f"m:{eid}" if eid else f"m:{hash(json.dumps(e, sort_keys=True, default=str))}",
+        "name": (e or {}).get("subject") or "Untitled Event",
+        "start": start,
+        "end": end or start,
+        "allDay": all_day,
+    }
+
+def _ms_fetch_all_events(access_token: str):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = "https://graph.microsoft.com/v1.0/me/events?$top=1000"
+    items = []
+    while url:
+        resp = requests.get(url, headers=headers, timeout=30)
+        try:
+            data = resp.json()
+        except Exception:
+            return None, {"error": f"Microsoft Graph returned non-JSON (HTTP {resp.status_code}).", "body": resp.text[:500]}
+        if resp.status_code >= 400:
+            return None, data
+        items.extend([_ms_event_to_internal(e) for e in data.get("value", [])])
+        url = data.get("@odata.nextLink")
+    return items, None
 
 @app.route("/api/auth_microsoft/login")
 def api_ms_login():
@@ -541,6 +640,31 @@ def api_ms_poll():
 
     integration_status["microsoft"] = False
     return jsonify(resp), 400
+
+@app.route("/api/auth_microsoft/events")
+def api_ms_events():
+    sess = _load_ms_session()
+    access_token = sess.get("access_token")
+    if not access_token:
+        integration_status["microsoft"] = False
+        return jsonify({"error": "Not authenticated. Start login first."}), 401
+
+    events, err = _ms_fetch_all_events(access_token)
+    if err:
+        integration_status["microsoft"] = False
+        return jsonify(err), 400
+
+    try:
+        os.makedirs(EVENTS_DIR, exist_ok=True)
+        out_path = os.path.join(EVENTS_DIR, "microsoft.json")
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(events, f, indent=2, ensure_ascii=False)
+        create_state()
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+    integration_status["microsoft"] = True
+    return jsonify({"status": "ok", "count": len(events)})
 
 # ------------------ Run ------------------
 if __name__ == "__main__":

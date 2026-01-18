@@ -15,7 +15,6 @@ body {
     height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
     width: 220px;
     background: #111;
@@ -26,7 +25,6 @@ body {
     padding: 0 20px 20px;
 }
 
-/* LOGO */
 .logo {
     width: 100%;
     height: 75px;
@@ -71,22 +69,19 @@ nav {
     transition: fill 0.2s, stroke 0.2s;
 }
 
-
 .nav-btn:hover svg *,
 .nav-btn.active svg * {
     stroke: #fff;
 }
 
-/* Main content */
 .content {
     flex: 1;
     display: flex;
-    flex-direction: column; /* stack children vertically */
-    gap: 10px; /* optional spacing */
-    height: 100%; /* make sure content fills container */
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
 }
 
-/* Tabs */
 .tabs {
     display: flex;
     width: 100%;
@@ -128,7 +123,6 @@ nav {
     border-bottom: 3px solid #222;
 }
 
-/* Module Content */
 .module-content {
     flex: 1;
     background: #fff;
@@ -138,7 +132,6 @@ nav {
     overflow-y: auto;
 }
 
-/* Info Sections */
 .info-section {
     margin-bottom: 20px;
 }
@@ -150,7 +143,6 @@ nav {
     color: #222;
 }
 
-/* Tables */
 .info-table, .key-table {
     width: 100%;
     border-collapse: collapse;
@@ -170,7 +162,6 @@ nav {
     font-weight: 500;
 }
 
-/* Empty State */
 .empty {
     text-align: center;
     color: #888;
@@ -179,7 +170,6 @@ nav {
     font-size: 0.95em;
 }
 
-/* Edit Buttons */
 .edit-btn {
     margin-left: 10px;
     padding: 4px 8px;
@@ -196,7 +186,6 @@ nav {
     background: #222;
 }
 
-/* Dialog */
 .dialog-backdrop {
     position: fixed;
     top: 0;
@@ -256,11 +245,11 @@ nav {
     background: #333;
 }
 
-/* Special Keys */
 .special-keys {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
+    justify-content: center;
     margin-bottom: 10px;
 }
 
@@ -278,7 +267,6 @@ nav {
     background: #bbb;
 }
 
-/* Dialog Actions */
 .dialog-actions {
     display: flex;
     justify-content: flex-end;
@@ -310,22 +298,23 @@ nav {
     background: #000;
 }
 
-/* --- Popup --- */
 .popup {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9999;
 }
 
 .popup-content {
     background: #fff;
+    color: #000;
     padding: 25px;
     border-radius: 10px;
     width: 380px;
+    min-width: 320px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
@@ -334,36 +323,29 @@ nav {
 }
 
 .popup-content h3 {
-    margin-bottom: 8px;
+    margin-bottom: 15px;
 }
 
-#key-input {
-    padding: 8px;
-    font-size: 1em;
-    text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    width: 100%;
-}
-
-.special-keys {
+.popup-content label {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: center;
+    justify-content: space-between;
 }
 
-.special-btn {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: #eee;
+.popup-actions {
+    margin-top: 15px;
+    text-align: right;
+}
+
+.popup-actions button {
+    margin-left: 10px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
 }
 
-.special-btn:hover {
-    background: #444;
+.popup-actions button:hover {
+    background: #000;
     color: #fff;
 }
 
@@ -378,6 +360,29 @@ nav {
     border: none;
     border-radius: 6px;
     cursor: pointer;
+}
+
+#key-input {
+    padding: 8px;
+    font-size: 1em;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 100%;
+}
+
+.special-btn {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #eee;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.special-btn:hover {
+    background: #444;
+    color: #fff;
 }
 
 #save-key {
@@ -401,7 +406,6 @@ nav {
     margin-top: 6px;
 }
 
-/* --- Module-level buttons --- */
 .save-controls {
     display: flex;
     justify-content: flex-end;
@@ -427,7 +431,6 @@ nav {
     color: white;
 }
 
-/* --- Informational popup --- */
 .info-popup {
     position: fixed;
     top: 20px;
@@ -444,15 +447,14 @@ nav {
     font-size: 0.95em;
 }
 
-/* --- Knob Array Dropdowns --- */
 .knob-select {
-    appearance: none; /* remove default arrow */
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background: #111; /* dark background */
-    color: #fff; /* white text */
+    background: #111;
+    color: #fff;
     padding: 8px 12px;
-    border: 1px solid #333; /* subtle border */
+    border: 1px solid #333;
     border-radius: 6px;
     font-size: 0.95em;
     cursor: pointer;
@@ -461,21 +463,18 @@ nav {
     text-align: center;
 }
 
-/* Hover effect */
 .knob-select:hover {
     border-color: #666;
     background: #222;
 }
 
-/* Focus effect */
 .knob-select:focus {
     outline: none;
     border-color: #fff;
-    box-shadow: 0 0 6px #fff50a22; /* subtle white glow */
+    box-shadow: 0 0 6px #fff50a22;
     background: #222;
 }
 
-/* Add custom arrow using pseudo-element */
 .knob-select-wrapper {
     position: relative;
     display: inline-block;
@@ -483,7 +482,7 @@ nav {
 }
 
 .knob-select-wrapper::after {
-    content: "▾"; /* arrow character */
+    content: "▾";
     position: absolute;
     right: 12px;
     top: 50%;
@@ -493,79 +492,25 @@ nav {
     font-size: 0.9em;
 }
 
-/* Ensure select inside wrapper stretches */
 .knob-select-wrapper select.knob-select {
     width: 100%;
 }
 
-/* --- Events --- */
-/* --- popup --- */
-.popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.popup-content {
-    background: #fff;
-    color: #000;
-    padding: 20px 25px;
-    border-radius: 8px;
-    min-width: 320px;
-}
-
-.popup-content h3 {
-    margin-bottom: 15px;
-}
-
-
-.popup-actions {
-    margin-top: 15px;
-    text-align: right;
-}
-
-.popup-actions button {
-    margin-left: 10px;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.popup-actions button:hover {
-    background: #000;
-    color: #fff;
-}
-
-.popup-content label {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* Card component (used by calendar & event list) */
 .card {
     background-color: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .05);
     padding: 1.25rem;
-    margin-bottom: 1.5rem; /* space between cards */
+    margin-bottom: 1.5rem;
 }
 
 .event-list {
-    flex: 3 1 0%; /* grow 3 parts */
-    min-height: 0; /* crucial for overflow to work */
-    overflow-y: auto; /* scroll if content exceeds */
+    flex: 3 1 0%;
+    min-height: 0;
+    overflow-y: auto;
 }
 
-/* Calendar placeholder (you can style the actual calendar widget separately) */
 #calendar-section {
     height: 70vh;
     display: flex;
@@ -580,7 +525,6 @@ nav {
     height: 100%;
 }
 
-/* Event list header */
 .list-header {
     display: flex;
     justify-content: space-between;
@@ -593,7 +537,6 @@ nav {
     font-size: 1.25rem;
 }
 
-/* Button styling */
 .add-event-btn {
     background-color: #d8d8d8;
     border: none;
@@ -610,7 +553,6 @@ nav {
     background-color: #c2c2c2;
 }
 
-/* Table styling */
 #events-table {
     width: 100%;
     border-collapse: collapse;
@@ -634,7 +576,6 @@ nav {
     background-color: #d8d8d8;
 }
 
-/* --- Settings --- */
 .settings-list {
     list-style: none;
     padding: 40px;
@@ -666,7 +607,6 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 20px;
     background: #1a1a1a;
     border-radius: 12px;
@@ -744,8 +684,6 @@ nav {
     font-size: 1.1rem;
 }
 
-/* Layout Creator */
-/* --- Toolbar --- */
 .layout-toolbar {
     display: flex;
     gap: 10px;
@@ -771,7 +709,6 @@ nav {
     background: #555;
 }
 
-/* --- Workspace --- */
 .layout-workspace {
     width: 800px;
     height: 480px;
@@ -783,11 +720,10 @@ nav {
 }
 
 .layout-workspace * {
-    user-select: none;  /* disable text selection inside workspace */
-    pointer: cursor;    /* show pointer cursor inside workspace */
+    user-select: none;
+    pointer: cursor;
 }
 
-/* --- Widgets --- */
 .widget {
     position: absolute;
     background: #2e2e2e;
@@ -806,7 +742,6 @@ nav {
     margin-bottom: 6px;
 }
 
-/* --- lista eventów w widgetach --- */
 .widget ul, .widget ol {
     margin: 0;
     list-style: none;
@@ -814,25 +749,51 @@ nav {
 }
 
 .widget-textarea{
-    background:none;          /* inherit widget’s light background */
+    background:none;
     border:none;
     resize:none;
     width:100%;
-    height:calc(100% - 30px);   /* leave space for title */
+    height:calc(100% - 30px);
     font-size:inherit;
-    color: #ffffff;                 /* dark text on light widget */
+    color: #ffffff;
 }
+
 .widget-textarea:focus{
     outline:1px solid #888;
 }
 
-/* Min‑sizes per widget type */
-.widget-events      { min-width: 180px; min-height: 120px; }
+.widget-events { min-width: 180px; min-height: 120px; }
 .widget-time{ min-width: 150px; min-height: 80px; }
-.widget-text        { min-width: 200px; min-height: 100px; }
-.widget-calendar    { min-width: 250px; min-height: 120px; }
+.widget-text { min-width: 200px; min-height: 100px; }
+.widget-calendar { min-width: 250px; min-height: 120px; }
 
-/* Resize handle */
+.widget-calendar{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+}
+
+.widget-calendar > b{
+    flex:none;
+    margin-bottom:4px;
+}
+
+.widget-calendar table{
+    flex:1;
+    width:100%;
+    height:100%;
+    border-collapse:collapse;
+}
+
+.widget-calendar td{
+    height:auto;
+}
+
+.widget-calendar td.cal-today{
+    background:#fff;
+    color:#444;
+}
+
 .widget .resize-handle {
     position: absolute;
     width: 12px;
@@ -843,7 +804,6 @@ nav {
     cursor: se-resize;
 }
 
-/* Digital clock specific styling */
 .time{
     display:flex;
     align-items:center;
@@ -853,73 +813,38 @@ nav {
     color:white;
 }
 
-/* Calendar inside widget */
 .widget table{ width:100%; border-collapse:collapse; font-size:12px;}
 .widget table th,
 .widget table td{ text-align:center; padding:2px;}
 
-/* --- Close‑button (X) w każdym widgetcie --- */
 .widget-close {
     position: absolute;
-    top: 4px;            /* odległość od górnego brzegu widgetu */
-    right: 4px;          /* odległość od prawego brzegu widgetu */
+    top: 4px;
+    right: 4px;
     width: 18px;
     height: 18px;
-    background: #555;    /* przyciemniony tło, żeby było widoczne */
+    background: #555;
     color: white;
     border-radius: 50%;
     font-size: 12px;
-    line-height: 16px;   /* wyśrodkowanie X w okręgu */
+    line-height: 16px;
     text-align: center;
     cursor: pointer;
-    z-index: 1000;       /* nad wszystkimi elementami widgetu */
-    user-select: none;   /* nie zaznaczamy przycisku */
+    z-index: 1000;
+    user-select: none;
 }
 
 .widget-close:hover { background:#777; }
 
-/* ----------  Kalendarz (widget)  ---------- */
-.widget-calendar{
-    /* Flex‑container: podział na nagłówek i tabelę          */
-    display:flex;
-    flex-direction:column;
-    height:100%;                    /* wypełnia całą wysokość widgetu */
-}
-
-.widget-calendar > b{             /* tytuł – nie rośnie                         */
-    flex:none;                    /* zachowaj naturalny rozmiar                */
-    margin-bottom:4px;             /* odstęp od tabeli                          */
-}
-
-/* Tabela będzie „wzrostem” (flex:1) i wypełni pozostałą przestrzeń   */
-.widget-calendar table{
-    flex:1;
-    width:100%;
-    height:100%;                   /* aby tabela rozciągnęła się pionowo      */
-    border-collapse:collapse;       /* opcjonalnie, dla czystego wyglądu     */
-}
-
-/* Opcjonalnie – żeby komórki wypełniały dostępny pionowy wymiar   */
-.widget-calendar td{
-    height:auto;                    /* automatycznie dostosuje się do wysokości */
-}
-
-/* ----------  Kalendarz (widget) – dzisiejszy dzień ---------- */
-.widget-calendar td.cal-today{
-    background:#fff;
-    color:#444;
-}
-
-/* ---- Przycisk „Zapisz Layout” w toolbarze ----- */
 .save-layout-btn{
     background: #b30c0c;
     cursor: pointer;
 }
+
 .save-layout-btn:hover{background:#555;}
 
 .hidden { display: none !important; }
 
-/* --- Automation --- */
 .automation-wrapper {
     padding: 20px;
     flex: 1;
@@ -986,7 +911,6 @@ nav {
     font-weight: bold;
 }
 
-/* --- Popup Editor --- */
 .automation-editor {
     width: 520px;
     max-height: 80vh;
@@ -1053,6 +977,7 @@ nav {
 
 .block-entry input[type="text"],
 .block-entry input[type="number"],
+.block-entry input[type="math"],
 .block-entry select {
     padding: 6px 8px;
     border: 1px solid #bbb;
@@ -1090,7 +1015,6 @@ nav {
 .btn-secondary:hover { background: #888; }
 .btn-danger:hover { background: #a52020; }
 
-/* NOWE: styl pola nazwy automacji */
 .automation-name-row,
 .automation-type-row{
     display: flex;
@@ -1098,12 +1022,14 @@ nav {
     gap: 4px;
     margin-bottom: 12px;
 }
+
 .automation-name-row label,
 .automation-type-row label{
     font-size: 0.75em;
     font-weight: 600;
     color: #444;
 }
+
 #automation-name-input {
     padding: 6px 8px;
     border: 1px solid #ccc;
@@ -1111,11 +1037,11 @@ nav {
     font-size: 0.85em;
     background: #fff;
 }
+
 #automation-name-input:focus {
     outline: 2px solid #222;
 }
 
-/* Add to your existing CSS */
 .tooltip {
     display: inline-block;
     width: 16px;
@@ -1187,10 +1113,11 @@ nav {
 
 .variables-help {
     background: #f8f9fa;
-    padding: 12px;
-    border-radius: 4px;
+    padding: 15px;
+    border-radius: 6px;
     margin: 15px 0;
     font-size: 14px;
+    border-left: 4px solid #444;
 }
 
 .variables-help code {
@@ -1289,23 +1216,9 @@ nav {
     font-size: 12px;
 }
 
-.variables-help {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 15px 0;
-    font-size: 14px;
-    border-left: 4px solid #444;
-}
-
-/* --- Auth pages (Google/Microsoft) --- */
 .auth-page {
     background: #f9f9fb;
     color: #222;
-}
-
-.auth-page {
-    /* keep existing look, just allow vertical fill inside .content */
     flex: 1;
     min-height: 0;
     display: flex;
@@ -1313,35 +1226,22 @@ nav {
 }
 
 .auth-wrap {
-    /* use more width inside content area */
-    max-width: 1240px;          /* additive override (was 860px) */
+    max-width: 1240px;
     width: 100%;
-
-    /* reduce empty space around and allow vertical expansion */
-    margin: 20px auto;          /* additive override (was 40px auto) */
-    padding: 0 24px;            /* additive override (was 0 16px) */
-
+    margin: 20px auto;
+    padding: 0 24px;
     flex: 1;
     min-height: 0;
     display: flex;
     align-items: stretch;
 }
 
-.auth-card {
-    /* let the card fill the available wrap size */
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-}
-
-/* optional: keep nice spacing on very large screens without changing style */
 @media (min-width: 1400px) {
     .auth-wrap {
         max-width: 1320px;
     }
 }
 
-/* keep mobile consistent */
 @media (max-width: 720px) {
     .auth-wrap {
         margin: 14px auto;
@@ -1350,6 +1250,9 @@ nav {
 }
 
 .auth-card {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     background: #fff;
     border: 1px solid #e6e6ea;
     border-radius: 12px;
@@ -1398,6 +1301,19 @@ nav {
     margin: 12px 0 0;
 }
 
+.auth-actions--spread {
+    margin-top: 18px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-actions-right {
+    display: inline-flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .auth-btn {
     padding: 10px 14px;
     border: 1px solid #cfcfd6;
@@ -1428,27 +1344,11 @@ nav {
     border-color: #000;
 }
 
-/* Small auth button (e.g., copy code) */
 .auth-btn.auth-btn--small {
     padding: 6px 10px;
     border-radius: 8px;
     font-size: 0.85em;
     margin-left: 10px;
-}
-
-.auth-result {
-    margin-top: 12px;
-}
-
-.auth-pre {
-    margin-top: 8px;
-    background: #0f1115;
-    color: #e8e8ea;
-    border-radius: 12px;
-    padding: 14px;
-    overflow: auto;
-    border: 1px solid #1f232b;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 
 .auth-link {
@@ -1469,7 +1369,6 @@ nav {
     font-weight: 600;
 }
 
-/* Auth back navigation (top-left) */
 .auth-back {
     margin-bottom: 10px;
 }
@@ -1497,11 +1396,8 @@ nav {
     outline-offset: 2px;
 }
 
-/* --- Auth toast (JSON output) --- */
 .auth-toast {
     position: fixed;
-    /* moved from left to right */
-    left: auto;
     right: 18px;
     bottom: 18px;
     width: min(560px, calc(100vw - 36px));
@@ -1560,7 +1456,6 @@ nav {
     word-break: break-word;
 }
 
-/* --- Auth layout helpers (additive) --- */
 .auth-header {
     display: flex;
     flex-direction: column;
@@ -1628,4 +1523,3 @@ nav {
         width: 100%;
     }
 }
-

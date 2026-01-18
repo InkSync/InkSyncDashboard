@@ -1,4 +1,3 @@
-// --- SETTINGS PAGE ---
 async function refreshIndicators() {
     const services = ["microsoft", "google"];
 
@@ -16,12 +15,12 @@ async function refreshIndicators() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".integration-btn").forEach(btn => {
-          btn.addEventListener("click", () => {
-              const service = btn.dataset.service;
-              window.location.href = `/settings/auth_${service}`;
-          });
-      });
+    document.querySelectorAll(".integration-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const service = btn.dataset.service;
+            window.location.href = `/settings/auth_${service}`;
+        });
+    });
 
-      refreshIndicators();
-  });
+    refreshIndicators();
+});
